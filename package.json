@@ -96,5 +96,6 @@
       "unrs-resolver",
       "vue-demi"
     ]
-  }
+  },
+  "version": "0.0.1"
 }
