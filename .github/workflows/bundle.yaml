@@ -49,5 +49,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           with-v: true
-      - if: ${{ steps.autotag.outputs.tag != '0.0.0' }}
+          tag-prefix: ${{ github.ref_name == 'main' && 'v' || format('{0}-', github.ref_name) }}
+      - if: ${{ steps.autotag.outputs.tag != '0.0.0' && steps.autotag.outputs.new-tag != steps.autotag.outputs.tag }}
         run: git push --delete origin ${{ steps.autotag.outputs.tag }}
