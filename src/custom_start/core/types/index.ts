@@ -8,22 +8,23 @@ export interface Item {
   type: string;
   tag: string;
   rarity: Rarity;
+  quantity?: number;
   effect: string;
   description: string;
   isCustom?: boolean; // 标识是否为自定义数据
 }
 
 // 货币类型
-export type Currency = Omit<Item, 'tag' | 'effect'>;
+export type Currency = Omit<Item, 'tag' | 'effect' | 'quantity'>;
 
 // 装备类型
-export type Equipment = Item;
+export type Equipment = Omit<Item, 'quantity'>;
 
 // 技能类型
-export interface Skill extends Item {
+export type Skill = Omit<Item, 'quantity'> & {
   consume?: string;
   isCustom?: boolean; // 标识是否为自定义数据
-}
+};
 
 // 命定之人类型
 export interface DestinedOne {

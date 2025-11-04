@@ -82,7 +82,10 @@ const totalCost = computed(() => {
         <div class="item-list">
           <div v-for="item in items" :key="item.name" class="selected-item">
             <div class="item-info">
-              <div class="item-name">{{ item.name }}</div>
+              <div class="item-name">
+                {{ item.name }}
+                <span v-if="item.quantity" class="item-quantity">× {{ item.quantity }}</span>
+              </div>
               <div class="item-cost">{{ item.cost }} 点</div>
             </div>
             <button class="remove-btn" @click="handleRemove(item, 'item')">×</button>
@@ -263,6 +266,13 @@ const totalCost = computed(() => {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+
+            .item-quantity {
+              margin-left: var(--spacing-xs);
+              font-size: 0.85rem;
+              font-weight: 500;
+              color: #4caf50;
+            }
           }
 
           .item-cost {

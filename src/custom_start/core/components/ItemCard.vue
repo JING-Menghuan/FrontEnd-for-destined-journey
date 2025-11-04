@@ -54,6 +54,11 @@ const handleClick = () => {
 const isSkill = (item: Equipment | Item | Skill): item is Skill => {
   return 'consume' in item;
 };
+
+// 判断是否为物品类型
+const isItem = (item: Equipment | Item | Skill): item is Item => {
+  return 'quantity' in item;
+};
 </script>
 
 <template>
@@ -84,6 +89,11 @@ const isSkill = (item: Equipment | Item | Skill): item is Skill => {
       <div v-if="'tag' in item && item.tag" class="item-info">
         <span class="info-label">标签:</span>
         <span class="info-value tag">{{ item.tag }}</span>
+      </div>
+
+      <div v-if="isItem(item) && item.quantity" class="item-info">
+        <span class="info-label">数量:</span>
+        <span class="info-value quantity">{{ item.quantity }}</span>
       </div>
 
       <div v-if="isSkill(item) && item.consume" class="item-info">
@@ -201,6 +211,13 @@ const isSkill = (item: Equipment | Item | Skill): item is Skill => {
         font-family: monospace;
         font-size: 0.85rem;
         color: var(--accent-color);
+      }
+
+      &.quantity {
+        font-family: monospace;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #4caf50;
       }
 
       &.consume {

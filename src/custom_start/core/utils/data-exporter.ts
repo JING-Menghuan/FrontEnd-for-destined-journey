@@ -99,7 +99,7 @@ export async function writeCharacterToMvu(
       // 普通道具添加到背包
       const itemData = {
         品质: RARITY_MAP[item.rarity] || '普通',
-        数量: 1,
+        数量: item.quantity || 1,
         类型: item.type,
         标签: item.tag,
         效果: item.effect,
@@ -260,6 +260,7 @@ export function generateAIPrompt(
       parts.push(`\n### ${idx + 1}. ${item.name || '未命名'}`);
       if (item.type) parts.push(`- 类型：${item.type}`);
       if (item.rarity) parts.push(`- 品质：${RARITY_MAP[item.rarity] || item.rarity}`);
+      if (item.quantity) parts.push(`- 数量：${item.quantity}`);
       if (item.tag) parts.push(`- 标签：${item.tag}`);
       if (item.effect) parts.push(`- 效果：${item.effect}`);
       if (item.description) parts.push(`- 描述：${item.description}`);

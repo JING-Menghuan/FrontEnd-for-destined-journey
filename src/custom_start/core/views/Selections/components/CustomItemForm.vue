@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { FormInput, FormLabel, FormTextarea } from '../../../components/Form';
+import { FormInput, FormLabel, FormNumber, FormTextarea } from '../../../components/Form';
 import type { Equipment, Item, Rarity, Skill } from '../../../types';
 import { calculateCostByPosition, getCostRange } from '../../../utils/cost-calculator';
 
@@ -22,6 +22,7 @@ const itemTag = ref('');
 const itemEffect = ref('');
 const itemDescription = ref('');
 const itemConsume = ref(''); // 仅技能需要
+const itemQuantity = ref(1); // 仅物品需要
 
 // 品质选项
 const rarityOptions: { value: Rarity; label: string; color: string }[] = [
@@ -66,6 +67,7 @@ const resetForm = () => {
   itemEffect.value = '';
   itemDescription.value = '';
   itemConsume.value = '';
+  itemQuantity.value = 1;
 };
 
 // 添加自定义物品
@@ -91,8 +93,14 @@ const handleAdd = () => {
       consume: itemConsume.value.trim() || '',
       isCustom: true, // 标记为自定义数据
     } as Skill;
+  } else if (categoryType.value === 'item') {
+    newItem = {
+      ...baseItem,
+      quantity: itemQuantity.value,
+      isCustom: true,
+    } as Item;
   } else {
-    newItem = baseItem as Equipment | Item;
+    newItem = baseItem as Equipment;
   }
 
   emit('add', newItem, categoryType.value);
@@ -166,6 +174,12 @@ const handleAdd = () => {
       <div class="form-row">
         <FormLabel label="标签" />
         <FormInput v-model="itemTag" placeholder="例如：[关联属性][目标类型][核心功能][威力: XXX][可选机制]" />
+      </div>
+
+      <!-- 数量（仅道具分类） -->
+      <div v-if="categoryType === 'item'" class="form-row">
+        <FormLabel label="数量" />
+        <FormNumber v-model="itemQuantity" :min="1" :max="99" placeholder="请输入物品数量" />
       </div>
 
       <!-- 消耗（仅技能分类） -->

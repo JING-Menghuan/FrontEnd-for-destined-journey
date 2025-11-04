@@ -142,6 +142,7 @@ const rarityColorMap: Record<string, string> = {
               <p class="item-title">
                 <strong>{{ index + 1 }}. </strong>
                 <span :style="{ color: rarityColorMap[item.rarity] }">{{ item.name }}</span>
+                <span v-if="item.quantity" class="item-quantity">× {{ item.quantity }}</span>
                 <span class="item-cost">[{{ item.cost }} 点]</span>
               </p>
               <p class="item-meta">
@@ -403,6 +404,13 @@ const rarityColorMap: Record<string, string> = {
   .item-title {
     font-size: 1.05rem;
     margin-bottom: var(--spacing-xs) !important;
+
+    .item-quantity {
+      font-size: 0.9rem;
+      color: #4caf50;
+      font-weight: 600;
+      margin-left: var(--spacing-xs);
+    }
 
     .item-cost {
       font-size: 0.9rem;
