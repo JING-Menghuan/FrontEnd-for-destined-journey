@@ -114,17 +114,16 @@ const isCustomBackground = (item: Background) => {
         </button>
       </div>
 
-      <!-- 简要描述（始终显示） -->
+      <!-- 描述内容 -->
       <p class="background-summary">
-        {{ item.description.substring(0, 100) }}{{ item.description.length > 100 ? '...' : '' }}
+        <template v-if="isExpanded(item.name) || item.description.length <= 100">
+          {{ item.description }}
+        </template>
+        <template v-else> {{ item.description.substring(0, 100) }}... </template>
       </p>
 
       <!-- 详细内容（可折叠） -->
       <div v-if="isExpanded(item.name)" class="background-details">
-        <p v-if="item.description.length > 100" class="background-description">
-          {{ item.description }}
-        </p>
-
         <div v-if="item.requiredRace || item.requiredLocation" class="requirements">
           <div v-if="item.requiredRace" class="requirement-item">
             <span class="requirement-label">种族要求：</span>

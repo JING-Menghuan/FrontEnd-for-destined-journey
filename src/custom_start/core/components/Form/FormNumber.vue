@@ -147,7 +147,6 @@ const handleBlur = (event: FocusEvent) => {
   outline: none;
 
   &.has-controls {
-    padding-right: 36px;
     border-radius: var(--radius-md) 0 0 var(--radius-md);
     border-right: none;
   }

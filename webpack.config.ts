@@ -1,4 +1,4 @@
-import { FSWatcher, watch } from 'chokidar';
+import { watch } from 'chokidar';
 import { globSync } from 'glob';
 import HTMLInlineCSSWebpackPluginModule from 'html-inline-css-webpack-plugin';
 import HtmlInlineScriptWebpackPlugin from 'html-inline-script-webpack-plugin';
@@ -107,7 +107,6 @@ function watch_it(compiler: webpack.Compiler) {
   }
 }
 
-let watcher: FSWatcher;
 function dump_schema(compiler: webpack.Compiler) {
   const execute = () => {
     exec('pnpm dump', { cwd: __dirname });
@@ -117,7 +116,7 @@ function dump_schema(compiler: webpack.Compiler) {
   if (!compiler.options.watch) {
     execute();
   } else {
-    watcher = watch('src', {
+    watch('src', {
       awaitWriteFinish: true,
     }).on('all', (_event, path) => {
       if (path.endsWith('schema.ts')) {

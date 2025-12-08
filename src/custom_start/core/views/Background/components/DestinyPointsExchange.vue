@@ -143,7 +143,7 @@ const handleExchange = () => {
     flex: 1;
 
     .exchange-input {
-      width: 140px;
+      width: 150px;
     }
 
     .exchange-button,
