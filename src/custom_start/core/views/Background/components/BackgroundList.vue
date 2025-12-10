@@ -130,8 +130,10 @@ const isCustomBackground = (item: Background) => {
             <span
               class="requirement-value"
               :class="{
-                'requirement-met': characterRace === item.requiredRace || characterRace === '自定义',
-                'requirement-unmet': characterRace !== item.requiredRace && characterRace !== '自定义',
+                'requirement-met':
+                  characterRace === item.requiredRace || characterRace === '自定义',
+                'requirement-unmet':
+                  characterRace !== item.requiredRace && characterRace !== '自定义',
               }"
             >
               {{ item.requiredRace }}
@@ -142,8 +144,10 @@ const isCustomBackground = (item: Background) => {
             <span
               class="requirement-value"
               :class="{
-                'requirement-met': characterLocation === item.requiredLocation || characterLocation === '自定义',
-                'requirement-unmet': characterLocation !== item.requiredLocation && characterLocation !== '自定义',
+                'requirement-met':
+                  characterLocation === item.requiredLocation || characterLocation === '自定义',
+                'requirement-unmet':
+                  characterLocation !== item.requiredLocation && characterLocation !== '自定义',
               }"
             >
               {{ item.requiredLocation }}
@@ -153,7 +157,9 @@ const isCustomBackground = (item: Background) => {
       </div>
 
       <!-- 不满足要求时显示提示 -->
-      <div v-if="!meetsRequirements(item)" class="requirement-warning">⚠️ 不满足该剧情的限定条件</div>
+      <div v-if="!meetsRequirements(item)" class="requirement-warning">
+        ⚠️ 不满足该剧情的限定条件
+      </div>
 
       <!-- 自定义开局输入框 -->
       <div v-if="isCustomBackground(item) && isSelected(item)" class="custom-input-area">

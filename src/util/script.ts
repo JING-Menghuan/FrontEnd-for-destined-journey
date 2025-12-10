@@ -12,7 +12,9 @@ export function teleportStyle() {
   if ($(`head > div[script_id="${getScriptId()}"]`).length > 0) {
     return;
   }
-  const $div = $(`<div>`).attr('script_id', getScriptId()).append($(`head > style`, document).clone());
+  const $div = $(`<div>`)
+    .attr('script_id', getScriptId())
+    .append($(`head > style`, document).clone());
   $('head').append($div);
 }
 

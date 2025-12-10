@@ -60,7 +60,9 @@ const subCategories = computed(() => {
 const isSkillSubCategoryAvailable = (subCategory: string): boolean => {
   // 获取当前角色的种族
   const currentRace =
-    characterStore.character.race === '自定义' ? characterStore.character.customRace : characterStore.character.race;
+    characterStore.character.race === '自定义'
+      ? characterStore.character.customRace
+      : characterStore.character.race;
 
   // 获取所有种族列表
   const raceSpecificCategories = Object.keys(getRaceCosts.value).filter(race => race !== '自定义');
@@ -119,7 +121,9 @@ watch(
     // 如果当前选中的技能子分类不可用，切换到第一个可用的
     if (currentCategory.value === 'skill' && currentSkillSubCategory.value) {
       if (!isSkillSubCategoryAvailable(currentSkillSubCategory.value)) {
-        const firstAvailable = skillSubCategories.value.find(cat => isSkillSubCategoryAvailable(cat));
+        const firstAvailable = skillSubCategories.value.find(cat =>
+          isSkillSubCategoryAvailable(cat),
+        );
         currentSkillSubCategory.value = firstAvailable || '';
       }
     }
@@ -220,7 +224,10 @@ const handleDeselectItem = (item: Equipment | Item | Skill) => {
 };
 
 // 从已选面板移除物品
-const handleRemoveFromPanel = (item: Equipment | Item | Skill, type: 'equipment' | 'item' | 'skill') => {
+const handleRemoveFromPanel = (
+  item: Equipment | Item | Skill,
+  type: 'equipment' | 'item' | 'skill',
+) => {
   switch (type) {
     case 'equipment':
       characterStore.removeEquipment(item as Equipment);
@@ -296,7 +303,10 @@ watch(resetPageTrigger, () => {
 });
 
 // 添加自定义物品
-const handleAddCustomItem = (item: Equipment | Item | Skill, type: 'equipment' | 'item' | 'skill') => {
+const handleAddCustomItem = (
+  item: Equipment | Item | Skill,
+  type: 'equipment' | 'item' | 'skill',
+) => {
   switch (type) {
     case 'equipment':
       characterStore.addEquipment(item as Equipment);
@@ -335,7 +345,11 @@ const handleAddCustomItem = (item: Equipment | Item | Skill, type: 'equipment' |
 
                 <!-- 技能的二级分类 -->
                 <div
-                  v-if="currentCategory === 'skill' && currentSubCategory === category && skillSubCategories.length > 0"
+                  v-if="
+                    currentCategory === 'skill' &&
+                    currentSubCategory === category &&
+                    skillSubCategories.length > 0
+                  "
                   class="sub-category-list"
                 >
                   <button
@@ -347,7 +361,9 @@ const handleAddCustomItem = (item: Equipment | Item | Skill, type: 'equipment' |
                       disabled: !isSkillSubCategoryAvailable(subCat),
                     }"
                     :disabled="!isSkillSubCategoryAvailable(subCat)"
-                    @click="isSkillSubCategoryAvailable(subCat) && (currentSkillSubCategory = subCat)"
+                    @click="
+                      isSkillSubCategoryAvailable(subCat) && (currentSkillSubCategory = subCat)
+                    "
                   >
                     {{ subCat }}
                   </button>

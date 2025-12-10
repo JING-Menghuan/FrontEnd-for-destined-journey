@@ -20,7 +20,8 @@ const isExpanded = ref(false);
 // 表单数据
 const categoryType = computed({
   get: () => customContentStore.customItemForm.categoryType,
-  set: (value: 'equipment' | 'item' | 'skill') => customContentStore.updateCustomItemForm('categoryType', value),
+  set: (value: 'equipment' | 'item' | 'skill') =>
+    customContentStore.updateCustomItemForm('categoryType', value),
 });
 
 const customItemType = computed({
@@ -94,7 +95,11 @@ const costRangeText = computed(() => {
 
 // 表单验证
 const isValid = computed(() => {
-  return itemName.value.trim() !== '' && customItemType.value.trim() !== '' && itemEffect.value.trim() !== '';
+  return (
+    itemName.value.trim() !== '' &&
+    customItemType.value.trim() !== '' &&
+    itemEffect.value.trim() !== ''
+  );
 });
 
 // 重置表单
@@ -176,7 +181,11 @@ const handleAdd = () => {
       <!-- 类型 -->
       <div class="form-row">
         <FormLabel label="类型" required />
-        <FormInput v-model="customItemType" placeholder="例如：武器、防具、消耗品、主动、被动等" :maxlength="20" />
+        <FormInput
+          v-model="customItemType"
+          placeholder="例如：武器、防具、消耗品、主动、被动等"
+          :maxlength="20"
+        />
       </div>
 
       <!-- 品质 -->
@@ -204,7 +213,10 @@ const handleAdd = () => {
       <!-- 标签 -->
       <div class="form-row">
         <FormLabel label="标签" />
-        <FormInput v-model="itemTag" placeholder="例如：[关联属性][目标类型][核心功能][威力: XXX][可选机制]" />
+        <FormInput
+          v-model="itemTag"
+          placeholder="例如：[关联属性][目标类型][核心功能][威力: XXX][可选机制]"
+        />
       </div>
 
       <!-- 数量（仅道具分类） -->
@@ -266,7 +278,11 @@ const handleAdd = () => {
     transition: all var(--transition-fast);
 
     &:hover {
-      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.08) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(212, 175, 55, 0.15) 0%,
+        rgba(212, 175, 55, 0.08) 100%
+      );
     }
 
     .header-left {

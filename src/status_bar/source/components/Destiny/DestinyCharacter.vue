@@ -245,9 +245,18 @@ const ascensionInfo = computed(() => {
 
   return {
     enabled: isEnabled,
-    elements: Object.entries(elementsObj).map(([name, desc]) => ({ name, description: String(desc || '') })),
-    powers: Object.entries(powersObj).map(([name, desc]) => ({ name, description: String(desc || '') })),
-    laws: Object.entries(lawsObj).map(([name, desc]) => ({ name, description: String(desc || '') })),
+    elements: Object.entries(elementsObj).map(([name, desc]) => ({
+      name,
+      description: String(desc || ''),
+    })),
+    powers: Object.entries(powersObj).map(([name, desc]) => ({
+      name,
+      description: String(desc || ''),
+    })),
+    laws: Object.entries(lawsObj).map(([name, desc]) => ({
+      name,
+      description: String(desc || ''),
+    })),
     position: safeGet(props.ascension, '神位', ''),
     realm: {
       name: safeGet(props.ascension, '神国.名称', ''),
@@ -463,7 +472,9 @@ const destinyFields = computed(() => [
       <div class="section-header">💞 命运关系</div>
       <template v-for="field in destinyFields" :key="field.label">
         <div class="info-row" :class="{ 'wrap-value': shouldWrapText(field.value) }">
-          <span class="property-name">{{ field.icon }}{{ field.icon ? ' ' : '' }}{{ field.label }}:</span>
+          <span class="property-name"
+            >{{ field.icon }}{{ field.icon ? ' ' : '' }}{{ field.label }}:</span
+          >
           <span class="value-main">{{ field.value }}</span>
         </div>
         <div v-if="field.showBar" class="affection-bar-container">

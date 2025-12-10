@@ -46,7 +46,12 @@ const handleReset = () => {
   resetPageTrigger.value++;
 };
 
-const stepTitles = ref([{ title: '信息/属性' }, { title: '装备/技能' }, { title: '对象/背景' }, { title: '确认' }]);
+const stepTitles = ref([
+  { title: '信息/属性' },
+  { title: '装备/技能' },
+  { title: '对象/背景' },
+  { title: '确认' },
+]);
 
 // 路由到步骤的映射
 const routeToStep: Record<string, number> = {
@@ -191,7 +196,11 @@ watch(
 
     <!-- 随机生成和重置按钮（确认页面不显示） -->
     <div v-if="currentStep !== 4" class="action-buttons">
-      <button class="action-button random-button" title="随机生成当前页面内容" @click="handleRandomGenerate">
+      <button
+        class="action-button random-button"
+        title="随机生成当前页面内容"
+        @click="handleRandomGenerate"
+      >
         <span class="icon">✨</span>
         <span class="text">随机当前页</span>
       </button>

@@ -210,7 +210,9 @@ const handleToggle = (item: DestinedOne) => {
                 {{ key }}：{{ value }}
               </div>
             </div>
-            <div v-if="item.stairway.godlyRank" class="stairway-item">神位：{{ item.stairway.godlyRank }}</div>
+            <div v-if="item.stairway.godlyRank" class="stairway-item">
+              神位：{{ item.stairway.godlyRank }}
+            </div>
             <div v-if="item.stairway.godKingdom" class="stairway-section">
               <div class="stairway-label">神国：</div>
               <div class="stairway-item">{{ item.stairway.godKingdom.name }}</div>

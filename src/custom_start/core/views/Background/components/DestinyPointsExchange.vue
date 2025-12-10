@@ -51,7 +51,13 @@ const handleExchange = () => {
       </div>
 
       <div class="exchange-controls">
-        <FormNumber v-model="pointsToExchange" :min="0" :max="maxExchangeable" placeholder="0" class="exchange-input" />
+        <FormNumber
+          v-model="pointsToExchange"
+          :min="0"
+          :max="maxExchangeable"
+          placeholder="0"
+          class="exchange-input"
+        />
 
         <button
           class="exchange-button"

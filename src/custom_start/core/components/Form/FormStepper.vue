@@ -28,7 +28,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>();
 
 const canDecrement = computed(() => !props.disabled && props.modelValue > props.min);
-const canIncrement = computed(() => !props.disabled && !props.disableIncrement && props.modelValue < props.max);
+const canIncrement = computed(
+  () => !props.disabled && !props.disableIncrement && props.modelValue < props.max,
+);
 
 const increment = () => {
   if (canIncrement.value) {
@@ -51,9 +53,23 @@ const decrement = () => {
   <div class="form-stepper">
     <span v-if="label" class="stepper-label">{{ label }}</span>
     <div class="stepper-controls">
-      <button type="button" class="stepper-btn decrement" :disabled="!canDecrement" @click="decrement">−</button>
+      <button
+        type="button"
+        class="stepper-btn decrement"
+        :disabled="!canDecrement"
+        @click="decrement"
+      >
+        −
+      </button>
       <span class="stepper-value">{{ modelValue }}</span>
-      <button type="button" class="stepper-btn increment" :disabled="!canIncrement" @click="increment">+</button>
+      <button
+        type="button"
+        class="stepper-btn increment"
+        :disabled="!canIncrement"
+        @click="increment"
+      >
+        +
+      </button>
     </div>
   </div>
 </template>

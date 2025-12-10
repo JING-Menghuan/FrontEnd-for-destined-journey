@@ -9,7 +9,9 @@ interface Backgrounds {
  * 初始背景
  */
 const Backgrounds: Backgrounds = {
-  通用开局: [{ name: '【自定义开局】', description: '自由发挥你的想象力，编写你自己的人物初始背景。' }],
+  通用开局: [
+    { name: '【自定义开局】', description: '自由发挥你的想象力，编写你自己的人物初始背景。' },
+  ],
 };
 
 // 加载并合并自定义初始剧情数据

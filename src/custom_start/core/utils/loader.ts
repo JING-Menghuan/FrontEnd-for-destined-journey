@@ -115,7 +115,10 @@ export async function loadBaseInfo(): Promise<BaseInfoData> {
  * @param customData 自定义数据
  * @returns 合并后的数据
  */
-export function mergeData<T>(builtinData: Record<string, T[]>, customData: Record<string, T[]>): Record<string, T[]> {
+export function mergeData<T>(
+  builtinData: Record<string, T[]>,
+  customData: Record<string, T[]>,
+): Record<string, T[]> {
   const merged = { ...builtinData };
 
   for (const [category, items] of Object.entries(customData)) {
@@ -145,9 +148,13 @@ export function mergeSkillData(
   ActiveSkills: Record<string, Skill[]>;
   PassiveSkills: Record<string, Skill[]>;
 } {
-  const mergedActive = customData.ActiveSkills ? mergeData(builtinActive, customData.ActiveSkills) : builtinActive;
+  const mergedActive = customData.ActiveSkills
+    ? mergeData(builtinActive, customData.ActiveSkills)
+    : builtinActive;
 
-  const mergedPassive = customData.PassiveSkills ? mergeData(builtinPassive, customData.PassiveSkills) : builtinPassive;
+  const mergedPassive = customData.PassiveSkills
+    ? mergeData(builtinPassive, customData.PassiveSkills)
+    : builtinPassive;
 
   return {
     ActiveSkills: mergedActive,

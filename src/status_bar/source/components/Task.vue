@@ -24,7 +24,12 @@ const summaryDetails = computed(() => `进行中: ${taskCount.value}个`);
 </script>
 
 <template>
-  <CommonStatus title="📜 当前任务" variant="section" :summary-details="summaryDetails" :default-open="false">
+  <CommonStatus
+    title="📜 当前任务"
+    variant="section"
+    :summary-details="summaryDetails"
+    :default-open="false"
+  >
     <div v-if="taskCount > 0" class="tasks-container">
       <CommonStatus
         v-for="task in tasks"

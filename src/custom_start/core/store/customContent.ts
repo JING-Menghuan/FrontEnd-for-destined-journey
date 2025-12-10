@@ -86,7 +86,10 @@ export const useCustomContentStore = defineStore('customContent', () => {
   /**
    * 更新自定义命定之人表单
    */
-  const updateCustomDestinedOneForm = (field: keyof typeof customDestinedOneForm.value, value: any) => {
+  const updateCustomDestinedOneForm = (
+    field: keyof typeof customDestinedOneForm.value,
+    value: any,
+  ) => {
     customDestinedOneForm.value[field] = value as never;
   };
 

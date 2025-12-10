@@ -62,7 +62,12 @@ const handleGacha = () => {
 </script>
 
 <template>
-  <CommonStatus title="💞 命定之人" variant="section" :default-open="false" :summary-details="summaryDetails">
+  <CommonStatus
+    title="💞 命定之人"
+    variant="section"
+    :default-open="false"
+    :summary-details="summaryDetails"
+  >
     <!-- 命运抽卡按钮 -->
     <button class="gacha-button" @click="handleGacha">命运抽卡(5连/500点)</button>
 

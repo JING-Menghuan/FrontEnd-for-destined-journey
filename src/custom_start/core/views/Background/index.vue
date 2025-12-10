@@ -198,7 +198,10 @@ onMounted(() => {
       <div class="background-container">
         <!-- 左侧：分类导航 -->
         <div class="background-sidebar">
-          <BackgroundCategoryNav v-model="currentBackgroundCategory" :categories="backgroundCategories" />
+          <BackgroundCategoryNav
+            v-model="currentBackgroundCategory"
+            :categories="backgroundCategories"
+          />
         </div>
 
         <!-- 右侧：背景列表 -->
@@ -222,13 +225,17 @@ onMounted(() => {
           <div class="summary-title-row">
             <h3 class="summary-title">已选择</h3>
             <div class="points-info">
-              <span class="points-value" :class="{ insufficient: availablePoints < 0 }">{{ availablePoints }}</span>
+              <span class="points-value" :class="{ insufficient: availablePoints < 0 }">{{
+                availablePoints
+              }}</span>
               <span class="points-separator">/</span>
               <span class="points-total">{{ characterStore.character.reincarnationPoints }}</span>
             </div>
           </div>
           <button
-            v-if="characterStore.selectedDestinedOnes.length > 0 || characterStore.selectedBackground"
+            v-if="
+              characterStore.selectedDestinedOnes.length > 0 || characterStore.selectedBackground
+            "
             class="clear-btn"
             @click="handleClearAll"
           >
@@ -239,9 +246,15 @@ onMounted(() => {
         <div class="summary-content">
           <!-- 命定之人摘要 -->
           <div v-if="characterStore.selectedDestinedOnes.length > 0" class="summary-group">
-            <div class="summary-label">命定之人 ({{ characterStore.selectedDestinedOnes.length }})</div>
+            <div class="summary-label">
+              命定之人 ({{ characterStore.selectedDestinedOnes.length }})
+            </div>
             <div class="summary-items">
-              <div v-for="one in characterStore.selectedDestinedOnes" :key="one.name" class="summary-item">
+              <div
+                v-for="one in characterStore.selectedDestinedOnes"
+                :key="one.name"
+                class="summary-item"
+              >
                 <span class="item-name">{{ one.name }}</span>
                 <span class="item-cost">{{ one.cost }} 点</span>
               </div>
@@ -260,7 +273,9 @@ onMounted(() => {
 
           <!-- 空状态提示 -->
           <div
-            v-if="characterStore.selectedDestinedOnes.length === 0 && !characterStore.selectedBackground"
+            v-if="
+              characterStore.selectedDestinedOnes.length === 0 && !characterStore.selectedBackground
+            "
             class="empty-state"
           >
             尚未选择任何内容

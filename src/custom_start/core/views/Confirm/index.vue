@@ -68,7 +68,9 @@ const rarityColorMap: Record<string, string> = {
           <div class="points-grid">
             <div class="point-item">
               <span class="point-label">转生点数</span>
-              <span class="point-value gold">{{ characterStore.character.reincarnationPoints }}</span>
+              <span class="point-value gold">{{
+                characterStore.character.reincarnationPoints
+              }}</span>
             </div>
             <div class="point-item">
               <span class="point-label">已消耗</span>
@@ -76,7 +78,10 @@ const rarityColorMap: Record<string, string> = {
             </div>
             <div class="point-item">
               <span class="point-label">剩余</span>
-              <span class="point-value" :class="{ negative: remainingPoints < 0, positive: remainingPoints >= 0 }">
+              <span
+                class="point-value"
+                :class="{ negative: remainingPoints < 0, positive: remainingPoints >= 0 }"
+              >
                 {{ remainingPoints }}
               </span>
             </div>
@@ -118,7 +123,11 @@ const rarityColorMap: Record<string, string> = {
         <section class="doc-section">
           <h3 class="section-title">🛡️ 装备 ({{ characterStore.selectedEquipments.length }})</h3>
           <div v-if="characterStore.selectedEquipments.length > 0" class="doc-text">
-            <div v-for="(item, index) in characterStore.selectedEquipments" :key="item.name" class="item-entry">
+            <div
+              v-for="(item, index) in characterStore.selectedEquipments"
+              :key="item.name"
+              class="item-entry"
+            >
               <p class="item-title">
                 <strong>{{ index + 1 }}. </strong>
                 <span :style="{ color: rarityColorMap[item.rarity] }">{{ item.name }}</span>
@@ -138,7 +147,11 @@ const rarityColorMap: Record<string, string> = {
         <section class="doc-section">
           <h3 class="section-title">🎒 道具 ({{ characterStore.selectedItems.length }})</h3>
           <div v-if="characterStore.selectedItems.length > 0" class="doc-text">
-            <div v-for="(item, index) in characterStore.selectedItems" :key="item.name" class="item-entry">
+            <div
+              v-for="(item, index) in characterStore.selectedItems"
+              :key="item.name"
+              class="item-entry"
+            >
               <p class="item-title">
                 <strong>{{ index + 1 }}. </strong>
                 <span :style="{ color: rarityColorMap[item.rarity] }">{{ item.name }}</span>
@@ -159,7 +172,11 @@ const rarityColorMap: Record<string, string> = {
         <section class="doc-section">
           <h3 class="section-title">✨ 技能 ({{ characterStore.selectedSkills.length }})</h3>
           <div v-if="characterStore.selectedSkills.length > 0" class="doc-text">
-            <div v-for="(skill, index) in characterStore.selectedSkills" :key="skill.name" class="item-entry">
+            <div
+              v-for="(skill, index) in characterStore.selectedSkills"
+              :key="skill.name"
+              class="item-entry"
+            >
               <p class="item-title">
                 <strong>{{ index + 1 }}. </strong>
                 <span :style="{ color: rarityColorMap[skill.rarity] }">{{ skill.name }}</span>
@@ -179,22 +196,31 @@ const rarityColorMap: Record<string, string> = {
 
         <!-- 命定之人 -->
         <section class="doc-section">
-          <h3 class="section-title">🌟 命定之人 ({{ characterStore.selectedDestinedOnes.length }})</h3>
+          <h3 class="section-title">
+            🌟 命定之人 ({{ characterStore.selectedDestinedOnes.length }})
+          </h3>
           <div v-if="characterStore.selectedDestinedOnes.length > 0" class="doc-text">
-            <div v-for="(one, index) in characterStore.selectedDestinedOnes" :key="one.name" class="destined-entry">
+            <div
+              v-for="(one, index) in characterStore.selectedDestinedOnes"
+              :key="one.name"
+              class="destined-entry"
+            >
               <p class="item-title">
                 <strong>{{ index + 1 }}. {{ one.name }}</strong>
                 <span class="item-cost">[{{ one.cost }} 点]</span>
               </p>
               <p class="item-meta">
-                {{ one.race }} | {{ one.identity.join('、') }} | Lv.{{ one.level }} | {{ one.lifeLevel }}
+                {{ one.race }} | {{ one.identity.join('、') }} | Lv.{{ one.level }} |
+                {{ one.lifeLevel }}
               </p>
               <p v-if="one.backgroundInfo">{{ one.backgroundInfo }}</p>
               <p v-if="one.comment" class="item-flavor">{{ one.comment }}</p>
 
               <div v-if="one.equip && one.equip.length > 0" class="sub-list">
                 <p><strong>装备：</strong></p>
-                <p v-for="(eq, idx) in one.equip" :key="idx" class="sub-item">• {{ eq.name || eq }}</p>
+                <p v-for="(eq, idx) in one.equip" :key="idx" class="sub-item">
+                  • {{ eq.name || eq }}
+                </p>
               </div>
 
               <div v-if="one.skills && one.skills.length > 0" class="sub-list">
@@ -214,13 +240,20 @@ const rarityColorMap: Record<string, string> = {
               <strong>{{ characterStore.selectedBackground.name }}</strong>
             </p>
             <p
-              v-if="characterStore.selectedBackground.race || characterStore.selectedBackground.location"
+              v-if="
+                characterStore.selectedBackground.race || characterStore.selectedBackground.location
+              "
               class="item-meta"
             >
               <span v-if="characterStore.selectedBackground.race"
                 >种族：{{ characterStore.selectedBackground.race }}</span
               >
-              <span v-if="characterStore.selectedBackground.race && characterStore.selectedBackground.location">
+              <span
+                v-if="
+                  characterStore.selectedBackground.race &&
+                  characterStore.selectedBackground.location
+                "
+              >
                 |
               </span>
               <span v-if="characterStore.selectedBackground.location"
@@ -302,7 +335,11 @@ const rarityColorMap: Record<string, string> = {
     border-radius: var(--radius-md);
 
     &.destiny {
-      background: linear-gradient(135deg, rgba(156, 39, 176, 0.1) 0%, rgba(156, 39, 176, 0.05) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(156, 39, 176, 0.1) 0%,
+        rgba(156, 39, 176, 0.05) 100%
+      );
     }
 
     .point-label {

@@ -119,7 +119,8 @@ const itemComment = computed({
 
 const itemBackgroundInfo = computed({
   get: () => customContentStore.customDestinedOneForm.itemBackgroundInfo,
-  set: (value: string) => customContentStore.updateCustomDestinedOneForm('itemBackgroundInfo', value),
+  set: (value: string) =>
+    customContentStore.updateCustomDestinedOneForm('itemBackgroundInfo', value),
 });
 
 const itemSkills = computed({
@@ -355,7 +356,11 @@ const handleAdd = () => {
       <!-- 身份 -->
       <div class="form-row">
         <FormLabel label="身份（多个用逗号或换行分隔）" />
-        <FormTextarea v-model="itemIdentity" placeholder="例如：&#10;吟游诗人&#10;异世界的猩红女巫" :rows="2" />
+        <FormTextarea
+          v-model="itemIdentity"
+          placeholder="例如：&#10;吟游诗人&#10;异世界的猩红女巫"
+          :rows="2"
+        />
       </div>
 
       <!-- 职业 -->

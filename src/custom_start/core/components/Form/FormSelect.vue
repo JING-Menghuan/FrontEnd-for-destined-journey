@@ -47,9 +47,19 @@ const normalizedOptions = computed(() => {
 
 <template>
   <div class="form-select-wrapper">
-    <select v-model="selectValue" :disabled="disabled" class="form-select" :class="{ 'is-disabled': disabled }">
+    <select
+      v-model="selectValue"
+      :disabled="disabled"
+      class="form-select"
+      :class="{ 'is-disabled': disabled }"
+    >
       <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
-      <option v-for="option in normalizedOptions" :key="option.value" :value="option.value" :disabled="option.disabled">
+      <option
+        v-for="option in normalizedOptions"
+        :key="option.value"
+        :value="option.value"
+        :disabled="option.disabled"
+      >
         {{ option.label }}
       </option>
     </select>
