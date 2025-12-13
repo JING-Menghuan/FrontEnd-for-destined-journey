@@ -290,7 +290,7 @@ const handleAdd = () => {
       <!-- 属性 -->
       <div class="form-row">
         <FormLabel label="属性" />
-        <AttributeEditor v-model="itemAttributes" :min="1" :max="99" />
+        <AttributeEditor v-model="itemAttributes" :min="1" :max="20" />
       </div>
 
       <!-- 登神长阶 -->

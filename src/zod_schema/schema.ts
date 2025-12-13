@@ -12,7 +12,10 @@ import {
 } from './utils.ts';
 
 export const Schema = z.object({
-  世界: z.object({ 时间: z.string(), 地点: z.string() }),
+  世界: z.object({
+    时间: z.string(),
+    地点: z.string(),
+  }),
   事件链: z.object({
     开启: z.boolean().prefault(false),
     结束: z.boolean().prefault(false),
