@@ -3,12 +3,14 @@ import { computed, ref } from 'vue';
 import FormTextarea from '../../../components/Form/FormTextarea.vue';
 import { useCustomContentStore } from '../../../store/customContent';
 import type { Background } from '../../../types';
+import RequirementBadge from './RequirementBadge.vue';
 
 interface Props {
   items: Background[];
   selectedItem: Background | null;
   characterRace: string;
   characterLocation: string;
+  characterIdentity: string;
 }
 
 interface Emits {
@@ -45,19 +47,35 @@ const isSelected = (item: Background) => {
   return props.selectedItem?.name === item.name;
 };
 
-// 检查是否满足要求
-const meetsRequirements = (item: Background) => {
-  // 检查种族要求
-  if (item.requiredRace && props.characterRace !== '自定义') {
-    if (item.requiredRace !== props.characterRace) {
-      return false;
-    }
+// 检查单个要求是否满足
+const checkRequirement = (required_value: string | undefined, current_value: string): boolean => {
+  // 无要求时，视为满足
+  if (!required_value) {
+    return true;
   }
+  // 有要求时，必须完全匹配（自定义不视为满足）
+  return required_value === current_value;
+};
 
-  // 检查地区要求
-  if (item.requiredLocation && props.characterLocation !== '自定义') {
-    if (item.requiredLocation !== props.characterLocation) {
-      return false;
+// 检查是否满足所有要求（任一不满足则无法选择）
+const meetsRequirements = (item: Background): boolean => {
+  const requirements = [
+    { type: 'race', required: item.requiredRace, current: props.characterRace },
+    { type: 'location', required: item.requiredLocation, current: props.characterLocation },
+    { type: 'identity', required: item.requiredIdentity, current: props.characterIdentity },
+  ];
+
+  for (const req of requirements) {
+    switch (req.type) {
+      case 'race':
+      case 'location':
+      case 'identity':
+        if (!checkRequirement(req.required, req.current)) {
+          return false;
+        }
+        break;
+      default:
+        break;
     }
   }
 
@@ -106,7 +124,7 @@ const isCustomBackground = (item: Background) => {
       <div class="card-header">
         <h3 class="background-name">{{ item.name }}</h3>
         <button
-          v-if="item.description.length > 100 || item.requiredRace || item.requiredLocation"
+          v-if="item.description.length > 100"
           class="expand-btn"
           @click="toggleExpand(item.name, $event)"
         >
@@ -114,47 +132,38 @@ const isCustomBackground = (item: Background) => {
         </button>
       </div>
 
-      <!-- 描述内容 -->
+      <!-- 限制要求 -->
+      <div
+        v-if="item.requiredRace || item.requiredLocation || item.requiredIdentity"
+        class="requirements"
+      >
+        <RequirementBadge
+          v-if="item.requiredRace"
+          label="种族要求"
+          :required-value="item.requiredRace"
+          :current-value="characterRace"
+        />
+        <RequirementBadge
+          v-if="item.requiredLocation"
+          label="地区要求"
+          :required-value="item.requiredLocation"
+          :current-value="characterLocation"
+        />
+        <RequirementBadge
+          v-if="item.requiredIdentity"
+          label="身份要求"
+          :required-value="item.requiredIdentity"
+          :current-value="characterIdentity"
+        />
+      </div>
+
+      <!-- 描述内容（过长时可折叠） -->
       <p class="background-summary">
         <template v-if="isExpanded(item.name) || item.description.length <= 100">
           {{ item.description }}
         </template>
         <template v-else> {{ item.description.substring(0, 100) }}... </template>
       </p>
-
-      <!-- 详细内容（可折叠） -->
-      <div v-if="isExpanded(item.name)" class="background-details">
-        <div v-if="item.requiredRace || item.requiredLocation" class="requirements">
-          <div v-if="item.requiredRace" class="requirement-item">
-            <span class="requirement-label">种族要求：</span>
-            <span
-              class="requirement-value"
-              :class="{
-                'requirement-met':
-                  characterRace === item.requiredRace || characterRace === '自定义',
-                'requirement-unmet':
-                  characterRace !== item.requiredRace && characterRace !== '自定义',
-              }"
-            >
-              {{ item.requiredRace }}
-            </span>
-          </div>
-          <div v-if="item.requiredLocation" class="requirement-item">
-            <span class="requirement-label">地区要求：</span>
-            <span
-              class="requirement-value"
-              :class="{
-                'requirement-met':
-                  characterLocation === item.requiredLocation || characterLocation === '自定义',
-                'requirement-unmet':
-                  characterLocation !== item.requiredLocation && characterLocation !== '自定义',
-              }"
-            >
-              {{ item.requiredLocation }}
-            </span>
-          </div>
-        </div>
-      </div>
 
       <!-- 不满足要求时显示提示 -->
       <div v-if="!meetsRequirements(item)" class="requirement-warning">
@@ -239,14 +248,6 @@ const isCustomBackground = (item: Background) => {
       transform: none;
     }
   }
-
-  &.expanded {
-    .background-details {
-      max-height: 1000px;
-      opacity: 1;
-      margin-top: var(--spacing-sm);
-    }
-  }
 }
 
 .card-header {
@@ -283,57 +284,22 @@ const isCustomBackground = (item: Background) => {
   }
 }
 
+.requirements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-color);
+}
+
 .background-summary {
   color: var(--text-color);
   line-height: 1.6;
   margin: 0;
   font-size: 0.9rem;
-}
-
-.background-details {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: all var(--transition-normal);
-}
-
-.background-description {
-  color: var(--text-color);
-  line-height: 1.6;
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: 0.9rem;
-}
-
-.requirements {
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--border-color-light);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.requirement-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 0.85rem;
-
-  .requirement-label {
-    color: var(--text-light);
-    font-weight: 500;
-  }
-
-  .requirement-value {
-    font-weight: 600;
-
-    &.requirement-met {
-      color: var(--success-color);
-    }
-
-    &.requirement-unmet {
-      color: var(--error-color);
-    }
-  }
 }
 
 .requirement-warning {

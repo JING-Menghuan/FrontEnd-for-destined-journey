@@ -211,6 +211,7 @@ onMounted(() => {
             :selected-item="characterStore.selectedBackground"
             :character-race="characterStore.character.race"
             :character-location="characterStore.character.startLocation"
+            :character-identity="characterStore.character.identity"
             @select="handleSelectBackground"
             @update:custom-description="handleUpdateCustomDescription"
           />

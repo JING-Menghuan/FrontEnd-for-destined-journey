@@ -78,6 +78,7 @@ export interface Background {
   description: string;
   requiredRace?: string;
   requiredLocation?: string;
+  requiredIdentity?: string;
   [key: string]: any;
 }
 
