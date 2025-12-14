@@ -51,7 +51,11 @@ export const Schema = z.object({
       法力值: _.clamp(data.法力值, 0, data.法力值上限),
       体力值: _.clamp(data.体力值, 0, data.体力值上限),
     })),
-  背包: z.record(z.string(), InventoryItemSchema),
+  背包: z
+    .record(z.string(), InventoryItemSchema)
+    .transform(items =>
+      Object.fromEntries(Object.entries(items).filter(([, item]) => item.数量 > 0)),
+    ),
   货币: z.object({
     金币: z.coerce
       .number()
