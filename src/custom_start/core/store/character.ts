@@ -23,7 +23,7 @@ import type {
 
 // 获取默认身份（模糊匹配含有"平民"的第一个值）
 const getDefaultIdentity = () =>
-  _.find(_.keys(getIdentityCosts.value), id => _.includes(id, '平民')) || '自定义';
+  _.find(_.keys(getIdentityCosts.value), id => _.includes(id, '平民')) || '';
 
 export const useCharacterStore = defineStore('character', () => {
   // State
@@ -291,7 +291,7 @@ export const useCharacterStore = defineStore('character', () => {
   watch(
     getIdentityCosts,
     newCosts => {
-      if (character.value.identity === '自定义' && !_.isEmpty(newCosts)) {
+      if (!character.value.identity && !_.isEmpty(newCosts)) {
         character.value.identity = getDefaultIdentity();
       }
     },

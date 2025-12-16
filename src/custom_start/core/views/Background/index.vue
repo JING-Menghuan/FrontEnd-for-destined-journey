@@ -258,6 +258,9 @@ onMounted(() => {
               >
                 <span class="item-name">{{ one.name }}</span>
                 <span class="item-cost">{{ one.cost }} 点</span>
+                <button class="remove-btn" @click="handleDeselectDestinedOne(one)">
+                  <i class="fas fa-xmark"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -498,6 +501,25 @@ onMounted(() => {
   .item-cost {
     color: var(--accent-color);
     font-weight: 600;
+  }
+
+  .remove-btn {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.65rem;
+    margin-left: auto;
+
+    &:hover {
+      background: #b71c1c;
+    }
   }
 }
 

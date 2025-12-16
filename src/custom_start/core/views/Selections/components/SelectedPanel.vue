@@ -69,7 +69,9 @@ const totalCost = computed(() =>
               <div class="item-name">{{ item.name }}</div>
               <div class="item-cost">{{ item.cost }} 点</div>
             </div>
-            <button class="remove-btn" @click="handleRemove(item, 'equipment')">×</button>
+            <button class="remove-btn" @click="handleRemove(item, 'equipment')">
+              <i class="fas fa-xmark"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -89,7 +91,9 @@ const totalCost = computed(() =>
               </div>
               <div class="item-cost">{{ item.cost }} 点</div>
             </div>
-            <button class="remove-btn" @click="handleRemove(item, 'item')">×</button>
+            <button class="remove-btn" @click="handleRemove(item, 'item')">
+              <i class="fas fa-xmark"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -106,7 +110,9 @@ const totalCost = computed(() =>
               <div class="item-name">{{ item.name }}</div>
               <div class="item-cost">{{ item.cost }} 点</div>
             </div>
-            <button class="remove-btn" @click="handleRemove(item, 'skill')">×</button>
+            <button class="remove-btn" @click="handleRemove(item, 'skill')">
+              <i class="fas fa-xmark"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -207,6 +213,7 @@ const totalCost = computed(() =>
 
   .panel-body {
     flex: 1;
+    align-content: center;
     overflow-y: auto;
     padding: var(--spacing-lg);
 
@@ -284,8 +291,8 @@ const totalCost = computed(() =>
         }
 
         .remove-btn {
-          width: 28px;
-          height: 28px;
+          width: 24px;
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -294,15 +301,11 @@ const totalCost = computed(() =>
           border: none;
           border-radius: 50%;
           cursor: pointer;
-          font-size: 1.3rem;
-          line-height: 1;
-          transition: all var(--transition-fast);
-          flex-shrink: 0;
           margin-left: var(--spacing-sm);
+          font-size: 0.75rem;
 
           &:hover {
             background: #b71c1c;
-            transform: scale(1.1);
           }
         }
       }
