@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .selectEditor {
   display: flex;
@@ -8,7 +9,7 @@
 }
 
 .label {
-  color: var(--theme-text-secondary);
+  @include label-text;
   white-space: nowrap;
   word-break: break-word;
 }
@@ -20,29 +21,11 @@
 }
 
 .select {
+  @include input-base;
   appearance: none;
   padding: 4px 28px 4px $spacing-sm;
-  background: var(--theme-window-bg);
-  border: 1px solid var(--theme-card-border);
-  border-radius: $border-radius-sm;
-  color: var(--theme-text-primary);
-  font-size: 12px;
   font-family: inherit;
   cursor: pointer;
-  transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast;
-
-  &:focus {
-    outline: none;
-    border-color: var(--theme-primary-bg);
-    box-shadow: 0 0 0 2px rgba(var(--theme-primary-rgb, 59, 130, 246), 0.2);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 .icon {
@@ -54,5 +37,5 @@
 }
 
 .disabled {
-  opacity: 0.6;
+  @include disabled-state;
 }

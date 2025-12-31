@@ -1,19 +1,14 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .newsTab {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 .newsTabLoading,
 .newsTabError,
 .newsTabEmpty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 150px;
-  color: var(--theme-text-muted);
+  @include state-container;
 }
 
 // 新闻类别标题
@@ -38,15 +33,11 @@
 
 // 新闻条目列表
 .newsItems {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 .newsItem {
-  padding: $spacing-xs $spacing-sm;
-  background: rgba(0, 0, 0, 0.18);
-  border-radius: $border-radius-sm;
+  @include item-bar;
   border-left: 3px solid var(--theme-tab-indicator);
   border: 1px solid var(--theme-card-border);
   min-width: 0;
@@ -77,8 +68,5 @@
 
 // 空提示
 .emptyHint {
-  text-align: center;
-  padding: $spacing-md;
-  color: var(--theme-text-muted);
-  font-size: 12px;
+  @include empty-hint;
 }

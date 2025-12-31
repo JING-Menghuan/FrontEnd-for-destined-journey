@@ -1,9 +1,8 @@
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .ascension {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 .compact {
@@ -68,11 +67,9 @@
 }
 
 .detailRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
+  @include label-value-grid;
   gap: 4px;
   padding: 1px 0;
-  align-items: start;
 }
 
 .detailKey {
@@ -104,9 +101,7 @@
 }
 
 .godInfo {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
+  @include list-container($spacing-xs);
 }
 
 .godInfoRow {
@@ -129,9 +124,7 @@
 }
 
 .godKingdom {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  @include list-container(4px);
 }
 
 .kingdomName {
@@ -152,8 +145,6 @@
 }
 
 .empty {
-  text-align: center;
-  padding: $spacing-md;
-  color: var(--theme-text-muted);
+  @include empty-hint;
   font-size: 13px;
 }

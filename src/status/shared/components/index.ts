@@ -3,6 +3,7 @@ export { Ascension } from './Ascension';
 export { Card } from './Card';
 export { Collapse } from './Collapse';
 export { ConfirmModal } from './ConfirmModal';
+export { DeleteConfirmModal } from './DeleteConfirmModal';
 export { EditableField } from './EditableField';
 export { EmptyHint } from './EmptyHint';
 export { IconTitle } from './IconTitle';
@@ -19,6 +20,7 @@ export type {
   ConfirmModalProps,
   ConfirmModalRow,
 } from './ConfirmModal';
+export type { DeleteConfirmModalProps } from './DeleteConfirmModal/DeleteConfirmModal';
 export type { EditableFieldProps } from './EditableField';
 export type { EmptyHintProps } from './EmptyHint/EmptyHint';
 export type { IconTitleProps } from './IconTitle/IconTitle';
@@ -29,7 +31,6 @@ export type { ResourceBarProps } from './ResourceBar/ResourceBar';
 export {
   KeyValueEditor,
   NumberEditor,
-  RecordListEditor,
   SelectEditor,
   TagEditor,
   TextareaEditor,
@@ -41,7 +42,6 @@ export {
 export type {
   KeyValueEditorProps,
   NumberEditorProps,
-  RecordListEditorProps,
   SelectEditorOption,
   SelectEditorProps,
   TagEditorProps,

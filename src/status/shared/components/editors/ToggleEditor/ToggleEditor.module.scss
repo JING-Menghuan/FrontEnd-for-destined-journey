@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .toggleEditor {
   display: inline-flex;
@@ -115,8 +116,7 @@
 }
 
 .disabled {
-  opacity: 0.5;
-  pointer-events: none;
+  @include disabled-state(0.5);
 
   .toggle {
     cursor: not-allowed;

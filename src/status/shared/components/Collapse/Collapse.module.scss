@@ -1,4 +1,5 @@
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .collapse {
   background: var(--theme-card-bg);
@@ -64,29 +65,7 @@
 }
 
 // 品质样式
-.collapseQualityUnique {
-  border-color: var(--theme-quality-unique);
-}
-
-.collapseQualityMythic {
-  border-color: var(--theme-quality-mythic);
-}
-
-.collapseQualityLegendary {
-  border-color: var(--theme-quality-legendary);
-}
-
-.collapseQualityEpic {
-  border-color: var(--theme-quality-epic);
-}
-
-.collapseQualityRare {
-  border-color: var(--theme-quality-rare);
-}
-
-.collapseQualityUncommon {
-  border-color: var(--theme-quality-uncommon);
-}
+@include quality-borders('collapseQuality');
 
 @media (max-width: 540px) {
   .collapseHeader {

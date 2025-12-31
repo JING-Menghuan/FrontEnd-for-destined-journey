@@ -1,7 +1,8 @@
 import { FC, ReactNode, useMemo, useState } from 'react';
-import { useEditorSettingStore, useMvuDataStore } from '../../core/stores';
+import { useDeleteConfirm } from '../../core/hooks';
+import { useEditorSettingStore } from '../../core/stores';
 import { sortEntriesByQuality } from '../../core/utils';
-import { Card, ConfirmModal, EditableField, EmptyHint, ItemDetail } from '../../shared/components';
+import { Card, DeleteConfirmModal, EditableField, EmptyHint, ItemDetail } from '../../shared/components';
 import { withMvuData, WithMvuDataProps } from '../../shared/hoc';
 import styles from './ItemsTab.module.scss';
 
@@ -22,11 +23,11 @@ const ALL_FILTER = '全部';
  */
 const ItemsTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const editEnabled = useEditorSettingStore(state => state.editEnabled);
-  const { deleteField } = useMvuDataStore();
+  const { deleteTarget, setDeleteTarget, handleDelete, cancelDelete, isConfirmOpen } =
+    useDeleteConfirm();
 
   const [activeCategory, setActiveCategory] = useState<CategoryId>('inventory');
   const [activeFilter, setActiveFilter] = useState<string>(ALL_FILTER);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; path: string; name: string } | null>(null);
 
   const player = data.主角;
 
@@ -102,20 +103,6 @@ const ItemsTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const handleCategoryChange = (category: CategoryId) => {
     setActiveCategory(category);
     setActiveFilter(ALL_FILTER);
-  };
-
-  /** 处理删除操作 */
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-
-    try {
-      await deleteField(deleteTarget.path);
-      toastr.success(`已删除「${deleteTarget.name}」`);
-    } catch {
-      toastr.error('删除失败');
-    } finally {
-      setDeleteTarget(null);
-    }
   };
 
   /** 渲染货币 */
@@ -297,18 +284,11 @@ const ItemsTabContent: FC<WithMvuDataProps> = ({ data }) => {
       <div className={styles.itemsTabContent}>{renderCategoryContent()}</div>
 
       {/* 删除确认弹窗 */}
-      <ConfirmModal
-        open={!!deleteTarget}
-        title={`确认删除${deleteTarget?.type ?? ''}`}
-        rows={[
-          { label: '名称', value: deleteTarget?.name ?? '' },
-          { label: '提示', value: '此操作不可撤销' },
-        ]}
-        buttons={[
-          { text: '删除', variant: 'danger', onClick: handleDelete },
-          { text: '取消', variant: 'secondary', onClick: () => setDeleteTarget(null) },
-        ]}
-        onClose={() => setDeleteTarget(null)}
+      <DeleteConfirmModal
+        open={isConfirmOpen}
+        target={deleteTarget}
+        onConfirm={handleDelete}
+        onCancel={cancelDelete}
       />
     </div>
   );

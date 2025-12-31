@@ -1,9 +1,8 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .settingsTab {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 // 编辑设置 - 紧凑行样式（不使用卡片包裹）
@@ -12,7 +11,7 @@
   align-items: center;
   justify-content: space-between;
   padding: $spacing-sm $spacing-md;
-  background: rgba(0, 0, 0, 0.2);
+  @include bg-overlay-medium-dark;
   border: 1px solid var(--theme-card-border);
   border-radius: $border-radius-sm;
 }
@@ -30,9 +29,7 @@
 
 // 主题选择器
 .themeSelector {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 .themeSelectorLabel {
@@ -55,21 +52,21 @@
   align-items: center;
   gap: $spacing-xs;
   padding: $spacing-sm;
-  background: rgba(0, 0, 0, 0.18);
+  @include bg-overlay-medium;
   border: 2px solid transparent;
   border-radius: $border-radius-md;
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.25);
+    @include bg-overlay-dark;
     border-color: var(--theme-card-border);
   }
 }
 
 .themeOptionActive {
   border-color: var(--theme-tab-indicator);
-  background: rgba(0, 0, 0, 0.25);
+  @include bg-overlay-dark;
 
   .themeName {
     color: var(--theme-text-primary);
@@ -131,31 +128,14 @@
 }
 
 .btn {
-  padding: $spacing-sm $spacing-md;
-  font-size: 12px;
-  border: none;
-  border-radius: $border-radius-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  @include button-base;
+  @include uppercase-text;
 }
 
 .btnPrimary {
-  background: var(--theme-primary-bg);
-  color: var(--theme-primary-text);
-
-  &:hover {
-    opacity: 0.9;
-  }
+  @include button-primary;
 }
 
 .btnSecondary {
-  background: var(--theme-card-bg);
-  border: 1px solid var(--theme-card-border);
-  color: var(--theme-text-secondary);
-
-  &:hover {
-    background: var(--theme-tab-hover-bg);
-  }
+  @include button-secondary;
 }

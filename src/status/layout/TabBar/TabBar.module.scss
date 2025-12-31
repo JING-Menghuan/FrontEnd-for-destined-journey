@@ -1,25 +1,12 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .tabBar {
   background: var(--theme-tab-bar-bg);
   border-bottom: 1px solid var(--theme-window-border);
   overflow-x: auto;
   position: relative;
-
-  scrollbar-width: thin;
-
-  &::-webkit-scrollbar {
-    height: 6px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--theme-tab-indicator);
-    border-radius: 999px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  @include custom-scrollbar(var(--theme-tab-indicator), 6px);
 }
 
 .list {
@@ -69,5 +56,5 @@
   border-bottom-color: var(--theme-tab-indicator);
   border-top-color: var(--theme-tab-indicator);
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.12);
+  @include bg-overlay-light;
 }

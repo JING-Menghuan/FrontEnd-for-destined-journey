@@ -1,4 +1,5 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .contentArea {
   flex: 1;
@@ -6,20 +7,5 @@
   background: var(--theme-content-bg);
   overflow-y: auto;
   overflow-x: hidden;
-
-  scrollbar-width: thin;
-  scrollbar-color: var(--theme-window-border) transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--theme-window-border);
-    border-radius: 3px;
-  }
+  @include custom-scrollbar;
 }

@@ -1,9 +1,8 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .destinyTab {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 .partnerTitle {
@@ -24,13 +23,8 @@
 }
 
 .affectionBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 6px;
+  @include badge-dark;
   font-size: 11px;
-  color: var(--theme-text-primary);
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: $border-radius-sm;
 }
 
 @media (max-width: 540px) {
@@ -49,11 +43,7 @@
 .destinyTabLoading,
 .destinyTabError,
 .destinyTabEmpty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 150px;
-  color: var(--theme-text-muted);
+  @include state-container;
 }
 
 // 命运点数卡片
@@ -96,9 +86,7 @@
 
 // 命定之人列表
 .partnerList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 .partnerName {
@@ -157,7 +145,7 @@
 .affectionBarTrack {
   flex: 1;
   height: 8px;
-  background: rgba(0, 0, 0, 0.25);
+  @include bg-overlay-dark;
   border-radius: 4px;
   overflow: hidden;
   border: none;
@@ -194,9 +182,8 @@
   gap: $spacing-md;
   flex-wrap: wrap;
   margin-bottom: $spacing-sm;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: $border-radius-sm;
+  @include item-bar;
+  @include bg-overlay-medium-light;
 }
 
 .toggleRow {
@@ -218,9 +205,7 @@
 }
 
 .infoRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
 }
 
 @media (max-width: 540px) {
@@ -248,9 +233,7 @@
 }
 
 .appearanceRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
   padding: 2px 0;
 }
 
@@ -279,9 +262,7 @@
 }
 
 .traitRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
   padding: 2px 0;
 }
 
@@ -341,7 +322,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 2px $spacing-xs;
-  background: rgba(0, 0, 0, 0.2);
+  @include bg-overlay-medium-dark;
   border-radius: 3px;
   min-width: 0;
   overflow: hidden;
@@ -375,9 +356,7 @@
 }
 
 .equipmentList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 .equipmentSlot {
@@ -392,9 +371,7 @@
 }
 
 .skillList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 .skillCost {
@@ -409,9 +386,7 @@
 }
 
 .thoughtsRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
 }
 
 .thoughtsLabel {
@@ -436,9 +411,7 @@
 }
 
 .backgroundRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
 }
 
 .backgroundLabel {
@@ -478,36 +451,13 @@
 
 // 空提示
 .emptyHint {
-  text-align: center;
-  padding: $spacing-lg;
-  color: var(--theme-text-muted);
-  font-size: 12px;
+  @include empty-hint($spacing-lg);
 }
 
-// 删除命定之人按钮
+// 删除命定之人按钮（编辑模式高亮显示）
 .deletePartnerBtn {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
+  @include delete-button-danger;
   margin-left: $spacing-xs;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: $border-radius-sm;
-  color: var(--theme-text-muted);
-  cursor: pointer;
-  transition: all $transition-fast;
-  opacity: 0.6;
-
-  &:hover {
-    opacity: 1;
-    color: var(--theme-error);
-    background: rgba(196, 73, 61, 0.12);
-    border-color: rgba(196, 73, 61, 0.25);
-  }
 
   i {
     font-size: 12px;

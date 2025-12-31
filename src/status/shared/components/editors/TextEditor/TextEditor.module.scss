@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .textEditor {
   display: flex;
@@ -8,7 +9,7 @@
 }
 
 .label {
-  color: var(--theme-text-secondary);
+  @include label-text;
   white-space: nowrap;
   padding-top: 4px;
   word-break: break-word;
@@ -30,8 +31,7 @@
   }
 
   &.disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+    @include disabled-state;
   }
 }
 
@@ -67,32 +67,13 @@
 }
 
 .input {
+  @include input-base;
   width: 100%;
   padding: $spacing-sm;
-  background: var(--theme-window-bg);
-  border: 1px solid var(--theme-card-border);
-  border-radius: $border-radius-sm;
-  color: var(--theme-text-primary);
-  font-size: 12px;
   font-family: inherit;
   resize: vertical;
-  transition:
-    border-color $transition-fast,
-    box-shadow $transition-fast;
-
-  &:focus {
-    outline: none;
-    border-color: var(--theme-primary-bg);
-    box-shadow: 0 0 0 2px rgba(var(--theme-primary-rgb, 59, 130, 246), 0.2);
-  }
-
-  &::placeholder {
-    color: var(--theme-text-muted);
-  }
 
   &:disabled {
     background: var(--theme-card-bg);
-    cursor: not-allowed;
-    opacity: 0.6;
   }
 }

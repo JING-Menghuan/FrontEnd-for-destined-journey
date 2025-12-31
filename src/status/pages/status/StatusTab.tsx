@@ -1,10 +1,11 @@
-import { FC, ReactNode, useState } from 'react';
-import { useEditorSettingStore, useMvuDataStore } from '../../core/stores';
+import { FC, ReactNode } from 'react';
+import { useDeleteConfirm } from '../../core/hooks';
+import { useEditorSettingStore } from '../../core/stores';
 import {
   Ascension,
   Card,
   Collapse,
-  ConfirmModal,
+  DeleteConfirmModal,
   EditableField,
   EmptyHint,
   ResourceBar,
@@ -177,15 +178,9 @@ const StatusEffects: FC<StatusEffectsProps> = ({ effects, summary, editEnabled, 
  */
 const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const editEnabled = useEditorSettingStore(state => state.editEnabled);
-  const { deleteField } = useMvuDataStore();
+  const { deleteTarget, setDeleteTarget, handleDelete, cancelDelete, isConfirmOpen } =
+    useDeleteConfirm();
   const player = data.主角;
-
-  // 删除确认状态
-  const [deleteTarget, setDeleteTarget] = useState<{
-    type: string;
-    path: string;
-    name: string;
-  } | null>(null);
 
   /**
    * 格式化基础信息显示值
@@ -308,20 +303,6 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
         effectStats.special ? `特殊 ${effectStats.special}` : '',
       ]).join(' · ')
     : '无效果';
-
-  /** 处理删除操作 */
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-
-    try {
-      await deleteField(deleteTarget.path);
-      toastr.success(`已删除「${deleteTarget.name}」`);
-    } catch {
-      toastr.error('删除失败');
-    } finally {
-      setDeleteTarget(null);
-    }
-  };
 
   return (
     <div className={styles.statusTab}>
@@ -446,18 +427,11 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
       </Collapse>
 
       {/* 删除确认弹窗 */}
-      <ConfirmModal
-        open={!!deleteTarget}
-        title={`确认删除${deleteTarget?.type ?? ''}`}
-        rows={[
-          { label: '名称', value: deleteTarget?.name ?? '' },
-          { label: '操作', value: '此操作不可撤销' },
-        ]}
-        buttons={[
-          { text: '删除', variant: 'danger', onClick: handleDelete },
-          { text: '取消', variant: 'secondary', onClick: () => setDeleteTarget(null) },
-        ]}
-        onClose={() => setDeleteTarget(null)}
+      <DeleteConfirmModal
+        open={isConfirmOpen}
+        target={deleteTarget}
+        onConfirm={handleDelete}
+        onCancel={cancelDelete}
       />
     </div>
   );

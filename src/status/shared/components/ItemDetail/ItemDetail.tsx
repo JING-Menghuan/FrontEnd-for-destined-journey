@@ -1,7 +1,6 @@
 import { getQualityClass, QualityClassMap } from '@/status/core/utils';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Collapse } from '../Collapse';
-import { ConfirmModal } from '../ConfirmModal';
 import { EditableField } from '../EditableField';
 import styles from './ItemDetail.module.scss';
 
@@ -45,7 +44,7 @@ interface ItemDetailProps {
   editEnabled?: boolean;
   /** 数据路径前缀（用于编辑时构建完整路径） */
   pathPrefix?: string;
-  /** 删除回调 */
+  /** 删除回调（点击删除按钮时触发，由父组件处理确认弹窗） */
   onDelete?: () => void;
   /** 物品类别，用于区分显示不同的字段 */
   itemCategory?: ItemCategory;
@@ -56,6 +55,7 @@ interface ItemDetailProps {
  * 用于渲染装备、技能、背包物品的完整信息
  * 复用于 ItemsTab 和 DestinyTab
  * 支持编辑模式下的字段编辑和删除功能
+ * 注意：删除确认弹窗由父组件控制，本组件只触发 onDelete 回调
  */
 export const ItemDetail: FC<ItemDetailProps> = ({
   name,
@@ -67,20 +67,13 @@ export const ItemDetail: FC<ItemDetailProps> = ({
   onDelete,
   itemCategory = 'item',
 }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
+  /** 处理删除按钮点击 */
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = () => {
-    setShowDeleteConfirm(false);
     onDelete?.();
   };
 
   return (
-    <>
       <Collapse
         quality={QualityClassMap[data.品质 ?? '']}
         defaultOpen={defaultOpen}
@@ -235,18 +228,5 @@ export const ItemDetail: FC<ItemDetailProps> = ({
           )}
         </div>
       </Collapse>
-
-      {/* 删除确认弹窗 */}
-      <ConfirmModal
-        open={showDeleteConfirm}
-        title="确认删除"
-        rows={[{ label: '操作', value: `确定要删除「${name}」吗？此操作不可撤销。` }]}
-        buttons={[
-          { text: '删除', variant: 'danger', onClick: handleConfirmDelete },
-          { text: '取消', variant: 'secondary', onClick: () => setShowDeleteConfirm(false) },
-        ]}
-        onClose={() => setShowDeleteConfirm(false)}
-      />
-    </>
   );
 };

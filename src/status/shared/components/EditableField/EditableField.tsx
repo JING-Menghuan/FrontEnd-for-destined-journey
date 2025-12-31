@@ -6,7 +6,6 @@ import type { SelectEditorOption } from '../editors';
 import {
   KeyValueEditor,
   NumberEditor,
-  RecordListEditor,
   SelectEditor,
   TagEditor,
   TextEditor,
@@ -15,15 +14,7 @@ import {
 import styles from './EditableField.module.scss';
 
 /** 字段类型 */
-type FieldType =
-  | 'text'
-  | 'number'
-  | 'tags'
-  | 'keyvalue'
-  | 'textarea'
-  | 'select'
-  | 'toggle'
-  | 'record';
+type FieldType = 'text' | 'number' | 'tags' | 'keyvalue' | 'textarea' | 'select' | 'toggle';
 
 export interface EditableFieldProps {
   /** 数据路径 (相对于 stat_data) */
@@ -34,10 +25,6 @@ export interface EditableFieldProps {
   type?: FieldType;
   /** 标签 */
   label?: string;
-  /** 是否可删除 */
-  deletable?: boolean;
-  /** 删除确认文本 */
-  deleteConfirmText?: string;
   /** 是否禁用 */
   disabled?: boolean;
   /** 自定义类名 */
@@ -68,15 +55,8 @@ export interface EditableFieldProps {
     /** 尺寸 */
     size?: 'sm' | 'md';
   };
-  /** 列表编辑器配置 */
-  recordConfig?: {
-    emptyText?: string;
-    renderItem: (key: string, item: unknown) => React.ReactNode;
-  };
   /** 更新成功回调 */
   onUpdateSuccess?: () => void;
-  /** 删除成功回调 */
-  onDeleteSuccess?: () => void;
 }
 
 /**
@@ -88,21 +68,15 @@ export const EditableField: FC<EditableFieldProps> = ({
   value,
   type = 'text',
   label,
-  deletable = false,
-  deleteConfirmText,
   disabled = false,
   className,
   numberConfig,
   keyValueConfig,
   selectConfig,
   toggleConfig,
-  recordConfig,
   onUpdateSuccess,
-  onDeleteSuccess,
 }) => {
-  const { updateField, deleteField } = useMvuDataStore();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { updateField } = useMvuDataStore();
 
   const [pendingValue, setPendingValue] = useState<unknown | null>(null);
   const [pendingLabel, setPendingLabel] = useState<string>('');
@@ -161,45 +135,6 @@ export const EditableField: FC<EditableFieldProps> = ({
     setShowConfirm(false);
     setPendingValue(null);
     setPendingPrevValue(null);
-  }, []);
-
-  /** 处理删除 */
-  const handleDelete = useCallback(async () => {
-    if (deleteConfirmText) {
-      setShowDeleteConfirm(true);
-      return;
-    }
-
-    setIsDeleting(true);
-    const success = await deleteField(path);
-    setIsDeleting(false);
-
-    if (success) {
-      toastr.success('已删除');
-      onDeleteSuccess?.();
-    } else {
-      toastr.error('删除失败');
-    }
-  }, [path, deleteField, deleteConfirmText, onDeleteSuccess]);
-
-  /** 确认删除 */
-  const confirmDelete = useCallback(async () => {
-    setShowDeleteConfirm(false);
-    setIsDeleting(true);
-    const success = await deleteField(path);
-    setIsDeleting(false);
-
-    if (success) {
-      toastr.success('已删除');
-      onDeleteSuccess?.();
-    } else {
-      toastr.error('删除失败');
-    }
-  }, [path, deleteField, onDeleteSuccess]);
-
-  /** 取消删除 */
-  const cancelDelete = useCallback(() => {
-    setShowDeleteConfirm(false);
   }, []);
 
   /** 渲染编辑器 */
@@ -269,16 +204,6 @@ export const EditableField: FC<EditableFieldProps> = ({
           />
         );
 
-      case 'record':
-        return (
-          <RecordListEditor
-            value={(value as Record<string, unknown>) ?? {}}
-            renderItem={recordConfig?.renderItem ?? (() => null)}
-            emptyText={recordConfig?.emptyText}
-            disabled={isDisabled}
-          />
-        );
-
       case 'text':
       default:
         return (
@@ -294,35 +219,6 @@ export const EditableField: FC<EditableFieldProps> = ({
   return (
     <div className={`${styles.editableField} ${className ?? ''}`}>
       <div className={styles.editorWrapper}>{renderEditor()}</div>
-
-      {deletable && !isDisabled && (
-        <div className={styles.deleteWrapper}>
-          {showDeleteConfirm ? (
-            <div className={styles.confirmDialog}>
-              <span className={styles.confirmText}>{deleteConfirmText}</span>
-              <button
-                className={`${styles.confirmBtn} ${styles.yesBtn}`}
-                onClick={confirmDelete}
-                disabled={isDeleting}
-              >
-                确认
-              </button>
-              <button className={`${styles.confirmBtn} ${styles.noBtn}`} onClick={cancelDelete}>
-                取消
-              </button>
-            </div>
-          ) : (
-            <button
-              className={styles.deleteBtn}
-              onClick={handleDelete}
-              disabled={isDeleting}
-              title="删除"
-            >
-              <i className={`fa-solid fa-trash ${isDeleting ? 'fa-spin' : ''}`} />
-            </button>
-          )}
-        </div>
-      )}
 
       <ConfirmModal
         open={showConfirm}

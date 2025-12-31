@@ -1,4 +1,5 @@
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 // 物品标题
 .itemTitle {
@@ -17,25 +18,8 @@
 
 // 删除按钮
 .deleteButton {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(196, 73, 61, 0.15);
-  border: 1px solid rgba(196, 73, 61, 0.3);
-  border-radius: 4px;
-  color: var(--theme-error);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 11px;
+  @include delete-button-danger;
   margin-left: auto;
-
-  &:hover {
-    background: rgba(196, 73, 61, 0.25);
-    border-color: rgba(196, 73, 61, 0.5);
-  }
 }
 
 // 字段标签
@@ -91,13 +75,7 @@
 }
 
 .tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
-  font-size: 10px;
-  color: var(--theme-text-primary);
+  @include badge-dark;
   border: none;
 }
 
@@ -113,11 +91,8 @@
 }
 
 .effectRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 0.33fr) minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid;
   padding: 2px 0;
-  align-items: start;
 }
 
 .effectKey {
@@ -139,26 +114,4 @@
 }
 
 // 品质颜色
-.qualityUnique {
-  color: var(--theme-quality-unique);
-}
-
-.qualityMythic {
-  color: var(--theme-quality-mythic);
-}
-
-.qualityLegendary {
-  color: var(--theme-quality-legendary);
-}
-
-.qualityEpic {
-  color: var(--theme-quality-epic);
-}
-
-.qualityRare {
-  color: var(--theme-quality-rare);
-}
-
-.qualityUncommon {
-  color: var(--theme-quality-uncommon);
-}
+@include quality-colors;

@@ -1,9 +1,8 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .questsTab {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 @media (max-width: 540px) {
@@ -17,11 +16,7 @@
 .loading,
 .error,
 .empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 150px;
-  color: var(--theme-text-muted);
+  @include state-container;
 }
 
 .error {
@@ -64,9 +59,7 @@
 
 // 任务列表
 .questList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 // 任务标题区域
@@ -94,25 +87,8 @@
 
 // 删除按钮
 .deleteButton {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(196, 73, 61, 0.15);
-  border: 1px solid rgba(196, 73, 61, 0.3);
-  border-radius: 4px;
-  color: var(--theme-error);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 11px;
+  @include delete-button-danger;
   margin-left: auto;
-
-  &:hover {
-    background: rgba(196, 73, 61, 0.25);
-    border-color: rgba(196, 73, 61, 0.5);
-  }
 }
 
 .questName {
@@ -124,15 +100,11 @@
 
 // 任务内容
 .questContent {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
+  @include list-container($spacing-xs);
 }
 
 .questField {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  @include list-container(2px);
 }
 
 .fieldLabel {
@@ -162,9 +134,8 @@
 }
 
 .emptyHint {
-  display: flex;
+  @include flex-center;
   flex-direction: column;
-  align-items: center;
   gap: $spacing-sm;
   color: var(--theme-text-muted);
 

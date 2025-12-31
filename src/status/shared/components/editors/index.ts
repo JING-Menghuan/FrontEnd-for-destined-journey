@@ -22,6 +22,3 @@ export type { SelectEditorOption, SelectEditorProps } from './SelectEditor/Selec
 
 export { ToggleEditor } from './ToggleEditor/ToggleEditor';
 export type { ToggleEditorProps } from './ToggleEditor/ToggleEditor';
-
-export { RecordListEditor } from './RecordListEditor/RecordListEditor';
-export type { RecordListEditorProps } from './RecordListEditor/RecordListEditor';

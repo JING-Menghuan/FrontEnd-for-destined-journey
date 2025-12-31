@@ -1,19 +1,14 @@
 @use '../../shared/styles/variables' as *;
+@use '../../shared/styles/mixins' as *;
 
 .itemsTab {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+  @include page-container;
 }
 
 .itemsTabLoading,
 .itemsTabError,
 .itemsTabEmpty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 150px;
-  color: var(--theme-text-muted);
+  @include state-container;
 }
 
 .itemsTabCurrency {
@@ -34,9 +29,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-xs;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba(0, 0, 0, 0.18);
-  border-radius: $border-radius-sm;
+  @include item-bar;
 }
 
 .filterBtn {
@@ -123,19 +116,14 @@
 // 类别按钮
 .categoryBtn {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: $spacing-xs;
-  padding: $spacing-xs $spacing-sm;
-  background: rgba(0, 0, 0, 0.18);
-  border-radius: $border-radius-sm;
+  @include item-bar;
   color: var(--theme-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: all $transition-fast;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  @include uppercase-text(0.5px);
 
   &:hover {
     background: var(--theme-tab-hover-bg);
@@ -150,9 +138,7 @@
 
 // 物品列表
 .itemList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+  @include list-container;
 }
 
 // 物品标题
@@ -200,14 +186,7 @@
 }
 
 .tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
-  font-size: 10px;
-  color: var(--theme-text-primary);
-  border: 1px solid var(--theme-card-border);
+  @include badge-bordered;
 }
 
 .itemDesc {
@@ -239,33 +218,8 @@
 
 // 空提示
 .emptyHint {
-  text-align: center;
-  padding: $spacing-lg;
-  color: var(--theme-text-muted);
-  font-size: 12px;
+  @include empty-hint($spacing-lg);
 }
 
 // 品质颜色
-.qualityUnique {
-  color: var(--theme-quality-unique);
-}
-
-.qualityMythic {
-  color: var(--theme-quality-mythic);
-}
-
-.qualityLegendary {
-  color: var(--theme-quality-legendary);
-}
-
-.qualityEpic {
-  color: var(--theme-quality-epic);
-}
-
-.qualityRare {
-  color: var(--theme-quality-rare);
-}
-
-.qualityUncommon {
-  color: var(--theme-quality-uncommon);
-}
+@include quality-colors;

@@ -1,13 +1,12 @@
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 // 遮罩层
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 999;
 }
 
@@ -31,30 +30,32 @@
 
 // 内容区域
 .body {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
+  @include list-container($spacing-xs);
 }
 
 // 信息行
 .row {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: $spacing-xs;
+  @include label-value-grid(48px);
   font-size: 12px;
 }
 
 // 行标签
 .label {
-  color: var(--theme-text-secondary);
+  @include label-text;
   word-break: break-word;
+  min-width: 0;
+  flex-shrink: 0;
+
+  // 确保空内容时也显示
+  &:empty::before {
+    content: '\00a0'; // 非断空格
+  }
 }
 
 // 行值
 .value {
   color: var(--theme-text-primary);
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  @include text-wrap;
 }
 
 // 操作按钮区域
@@ -67,78 +68,30 @@
 
 // 主要按钮（确认）
 .btnPrimary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @include button-primary;
   min-width: 56px;
   padding: 4px 8px;
   font-size: 11px;
-  border-radius: $border-radius-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: var(--theme-primary-bg);
-  color: var(--theme-primary-text);
-  border: none;
 
   &:hover:not(:disabled) {
     filter: brightness(1.1);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 }
 
 // 危险按钮（删除确认等）
 .btnDanger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @include button-danger;
   min-width: 56px;
   padding: 4px 8px;
   font-size: 11px;
-  border-radius: $border-radius-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: var(--theme-danger-bg, #ef4444);
-  color: white;
-  border: none;
-
-  &:hover:not(:disabled) {
-    filter: brightness(1.1);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 // 次要按钮（取消）
 .btnSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @include button-secondary;
   min-width: 56px;
   padding: 4px 8px;
   font-size: 11px;
-  border-radius: $border-radius-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: var(--theme-card-bg);
-  color: var(--theme-text-secondary);
-  border: 1px solid var(--theme-card-border);
-
-  &:hover:not(:disabled) {
-    background: var(--theme-tab-hover-bg);
-    color: var(--theme-text-primary);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 // 自定义内容区域
