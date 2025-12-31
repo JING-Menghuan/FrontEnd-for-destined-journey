@@ -156,7 +156,9 @@ const StatusEffects: FC<StatusEffectsProps> = ({ effects, summary, editEnabled, 
                         {effect.类型 && <span className={styles.effectType}>{effect.类型}</span>}
                       </div>
                       {effect.效果 && <span className={styles.effectDesc}>{effect.效果}</span>}
-                      {effect.来源 && <span className={styles.effectSource}>来源：{effect.来源}</span>}
+                      {effect.来源 && (
+                        <span className={styles.effectSource}>来源：{effect.来源}</span>
+                      )}
                     </div>
                     <div className={styles.effectMeta}>
                       {_.isNumber(effect.层数) && effect.层数 > 1 && (
@@ -221,11 +223,7 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
     return (
       <div key={field.key} className={styles.basicInfoRow}>
         <span className={styles.basicInfoLabel}>{field.label}</span>
-        <EditableField
-          path={path}
-          value={value ?? field.defaultValue}
-          type={field.type}
-        />
+        <EditableField path={path} value={value ?? field.defaultValue} type={field.type} />
       </div>
     );
   };

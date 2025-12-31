@@ -2,15 +2,42 @@ import { FC, ReactNode, useMemo, useState } from 'react';
 import { useDeleteConfirm } from '../../core/hooks';
 import { useEditorSettingStore } from '../../core/stores';
 import { formatMoney, sortEntriesByQuality } from '../../core/utils';
-import { Card, DeleteConfirmModal, EditableField, EmptyHint, ItemDetail } from '../../shared/components';
+import {
+  Card,
+  DeleteConfirmModal,
+  EditableField,
+  EmptyHint,
+  ItemDetail,
+} from '../../shared/components';
 import { withMvuData, WithMvuDataProps } from '../../shared/hoc';
 import styles from './ItemsTab.module.scss';
 
 /** 物品类别 Tab 配置 */
 const ItemCategories = [
-  { id: 'inventory', label: '背包', icon: 'fa-solid fa-box', filterKey: '类型', pathPrefix: '主角.背包', itemCategory: 'item' as const },
-  { id: 'equipment', label: '装备', icon: 'fa-solid fa-shield', filterKey: '位置', pathPrefix: '主角.装备', itemCategory: 'equipment' as const },
-  { id: 'skills', label: '技能', icon: 'fa-solid fa-wand-sparkles', filterKey: '类型', pathPrefix: '主角.技能', itemCategory: 'skill' as const },
+  {
+    id: 'inventory',
+    label: '背包',
+    icon: 'fa-solid fa-box',
+    filterKey: '类型',
+    pathPrefix: '主角.背包',
+    itemCategory: 'item' as const,
+  },
+  {
+    id: 'equipment',
+    label: '装备',
+    icon: 'fa-solid fa-shield',
+    filterKey: '位置',
+    pathPrefix: '主角.装备',
+    itemCategory: 'equipment' as const,
+  },
+  {
+    id: 'skills',
+    label: '技能',
+    icon: 'fa-solid fa-wand-sparkles',
+    filterKey: '类型',
+    pathPrefix: '主角.技能',
+    itemCategory: 'skill' as const,
+  },
 ] as const;
 
 type CategoryId = (typeof ItemCategories)[number]['id'];

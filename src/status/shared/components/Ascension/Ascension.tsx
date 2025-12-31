@@ -119,11 +119,7 @@ export const Ascension: FC<AscensionProps> = ({
           </div>
           <div className={styles.godInfo}>
             {editEnabled && pathPrefix ? (
-              <EditableField
-                path={`${pathPrefix}.神位`}
-                value={data.神位}
-                type="text"
-              />
+              <EditableField path={`${pathPrefix}.神位`} value={data.神位} type="text" />
             ) : (
               <div className={styles.godTitle}>{data.神位}</div>
             )}

@@ -59,10 +59,7 @@ export const SettingsTab: FC = () => {
                 className={`${styles.themeOption} ${currentThemeId === theme.id ? styles.themeOptionActive : ''}`}
                 onClick={() => handleThemeChange(theme.id)}
               >
-                <span
-                  className={styles.themePreview}
-                  data-theme={theme.id}
-                />
+                <span className={styles.themePreview} data-theme={theme.id} />
                 <span className={styles.themeName}>{theme.name}</span>
               </button>
             ))}

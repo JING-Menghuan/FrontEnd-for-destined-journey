@@ -79,7 +79,7 @@ export const KeyValueEditor: FC<KeyValueEditorProps> = ({
 
   const handleKeyDown = (
     e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-    action: 'add' | 'edit'
+    action: 'add' | 'edit',
   ) => {
     // Ctrl+Enter 或 Cmd+Enter 提交
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
