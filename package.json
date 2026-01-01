@@ -82,6 +82,7 @@
     "@vueuse/core": "^14.1.0",
     "@vueuse/integrations": "^14.1.0",
     "@vueuse/shared": "^14.1.0",
+    "async-wait-until": "^2.0.31",
     "compare-versions": "^6.1.1",
     "dedent": "^1.7.1",
     "glob": "^13.0.0",
