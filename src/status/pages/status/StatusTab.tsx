@@ -194,11 +194,19 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const formatDisplayValue = (field: BasicInfoFieldConfig) => {
     const value = _.get(player, field.key);
 
-    if (field.type === 'tags' && _.isArray(value)) {
-      return value.length > 0 ? value.join(' / ') : field.defaultValue;
+    if (field.type === 'tags') {
+      // 数组类型：空数组显示"无"
+      if (_.isArray(value) && value.length > 0) {
+        return value.join(' / ');
+      }
+      return '无';
     }
 
     const displayValue = value ?? field.defaultValue ?? '';
+    // 空字符串显示"无"
+    if (displayValue === '') {
+      return '无';
+    }
     return field.prefix ? `${field.prefix}${displayValue}` : displayValue;
   };
 

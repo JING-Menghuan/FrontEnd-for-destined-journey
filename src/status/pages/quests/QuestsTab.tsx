@@ -70,7 +70,7 @@ const QuestCard: FC<QuestCardProps> = ({ name, quest, editEnabled, onDelete }) =
                     className={styles.editableContent}
                   />
                 ) : (
-                  <span className={styles.fieldText}>{fieldValue ?? ''}</span>
+                  <span className={styles.fieldText}>{fieldValue || '无'}</span>
                 )}
               </div>
             </div>

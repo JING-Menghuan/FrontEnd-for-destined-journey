@@ -51,9 +51,12 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
 
     // 格式化显示值
     const formatDisplayValue = () => {
-      if (value === undefined || value === null) return '';
-      if (type === 'tags' && Array.isArray(value)) return value.join(' / ');
+      if (value === undefined || value === null) return '无';
+      if (type === 'tags' && Array.isArray(value)) {
+        return value.length > 0 ? value.join(' / ') : '无';
+      }
       if (type === 'toggle') return value ? '是' : '否';
+      if (value === '') return '无';
       return String(value);
     };
 
