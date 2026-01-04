@@ -1,4 +1,4 @@
-import { FC, ReactNode, useCallback } from 'react';
+import { FC, ReactNode, useCallback, useEffect } from 'react';
 import styles from './ConfirmModal.module.scss';
 
 /** 确认弹窗信息行配置 */
@@ -44,6 +44,17 @@ export interface ConfirmModalProps {
 }
 
 /**
+ * 滚动到 iframe 位置（让父页面滚动到 iframe 可见区域）
+ * 因为弹窗是通过 iframe 加载到页面中的，需要让父页面滚动到 iframe 位置才能看到弹窗
+ */
+const scrollToIframe = () => {
+  const frameElement = window.frameElement;
+  if (frameElement) {
+    frameElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+};
+
+/**
  * 通用确认弹窗组件
  * 支持信息行展示和自定义内容
  */
@@ -57,6 +68,13 @@ export const ConfirmModal: FC<ConfirmModalProps> = ({
   closeOnOverlay = true,
   className,
 }) => {
+  // 弹窗显示时滚动到 iframe 位置
+  useEffect(() => {
+    if (open) {
+      scrollToIframe();
+    }
+  }, [open]);
+
   /** 处理遮罩点击 */
   const handleOverlayClick = useCallback(() => {
     if (closeOnOverlay && onClose) {
