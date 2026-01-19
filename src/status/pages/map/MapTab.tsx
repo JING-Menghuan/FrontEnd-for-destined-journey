@@ -1,27 +1,81 @@
 import OpenSeadragon from 'openseadragon';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DrawStroke, useCanvasDraw } from '../../core/hooks/use-canvas-draw';
-import { parseWorldLocation } from '../../core/utils/parse-world-location';
-import { resolveMapFocus } from '../../core/utils/resolve-map-focus';
+import { useMapMarkers } from '../../core/hooks/use-map-markers';
+import { useMapViewer } from '../../core/hooks/use-map-viewer';
+import { MapMarker } from '../../core/types/map-markers';
+import { mapSourceList } from '../../core/types/map-source-list';
+import {
+  DEFAULT_DRAW_COLOR,
+  DEFAULT_MARKER_COLOR,
+  drawColorOptions,
+  markerIconLabels,
+  markerIconOptions,
+} from '../../core/utils/map-constants';
+import { Collapse } from '../../shared/components';
 import { withMvuData, WithMvuDataProps } from '../../shared/hoc';
-import type { MapMarker } from './data/map-markers';
-import type { MapPositionIndex } from './data/map-position-index';
-import { mapSourceList } from './data/map-source-list';
-import { mapSources } from './data/map-sources';
 import styles from './MapTab.module.scss';
 
-const MapTabContent: FC<WithMvuDataProps> = ({ data }) => {
+const MapTabContent: FC<WithMvuDataProps> = ({ data: _data }) => {
   const [drawMode, setDrawMode] = useState(false);
   const [drawStrokes, setDrawStrokes] = useState<DrawStroke[]>([]);
+  const [drawColor, setDrawColor] = useState(DEFAULT_DRAW_COLOR);
   const [mapSourceKey, setMapSourceKey] = useState<'small' | 'large'>('small');
-  const [mapData, setMapData] = useState<{
-    markers: MapMarker[];
-    positionIndex: MapPositionIndex;
-  } | null>(null);
-  const [mapDataError, setMapDataError] = useState<string | null>(null);
+  const [markerSearch, setMarkerSearch] = useState('');
   const inlineContainerRef = useRef<HTMLDivElement | null>(null);
   const inlineCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewerRef = useRef<OpenSeadragon.Viewer | null>(null);
+  const redrawRef = useRef<() => void>(() => undefined);
+  const resizeCanvasRef = useRef<() => void>(() => undefined);
+
+  const markerClassNames = useMemo(
+    () => ({
+      mapMarker: styles.mapMarker,
+      mapMarkerActive: styles.mapMarkerActive,
+      mapMarkerIcon: styles.mapMarkerIcon,
+      mapMarkerIconNode: styles.mapMarkerIconNode,
+      mapMarkerLabel: styles.mapMarkerLabel,
+      mapMarkerCard: styles.mapMarkerCard,
+      mapMarkerTitle: styles.mapMarkerTitle,
+      mapMarkerGroup: styles.mapMarkerGroup,
+      mapMarkerSummary: styles.mapMarkerSummary,
+    }),
+    [],
+  );
+
+  const {
+    markers: mapMarkers,
+    setMarkers: setMapMarkers,
+    activeMarkerId,
+    setActiveMarkerId,
+    markerAddMode,
+    setMarkerAddMode,
+    updateMarker,
+    deleteMarker,
+    addMarkerAt,
+    focusMarker,
+    syncMarkerOverlaysRef,
+    overlayMapRef,
+  } = useMapMarkers({
+    viewerRef,
+    classNames: markerClassNames,
+  });
+
+  const markerColorOptions = drawColorOptions;
+
+  const activeMarker = useMemo(() => {
+    return mapMarkers.find(marker => marker.id === activeMarkerId) ?? null;
+  }, [mapMarkers, activeMarkerId]);
+
+  const filteredMarkers = useMemo(() => {
+    const keyword = markerSearch.trim().toLowerCase();
+    if (!keyword) return mapMarkers;
+    return mapMarkers.filter(marker => {
+      return [marker.name, marker.group, marker.description]
+        .filter(Boolean)
+        .some(text => text!.toLowerCase().includes(keyword));
+    });
+  }, [mapMarkers, markerSearch]);
 
   const mapPointFromEvent = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
@@ -69,73 +123,41 @@ const MapTabContent: FC<WithMvuDataProps> = ({ data }) => {
     canvasRef: inlineCanvasRef,
     initialStrokes: drawStrokes,
     onChange: setDrawStrokes,
+    strokeColor: drawColor,
     mapPointFromEvent,
     mapPointToCanvas,
   });
 
   const { resizeCanvas, redraw } = inlineDraw;
 
-  const mapDataUrl = useMemo(() => {
-    return `https://testingcf.jsdelivr.net/gh/The-poem-of-destiny/FrontEnd-for-destined-journey@${__APP_VERSION__}/public/assets/map/mapData.json`;
-  }, []);
+  useEffect(() => {
+    redrawRef.current = redraw;
+  }, [redraw]);
 
-  const worldLocation = useMemo(() => {
-    return data.世界?.地点 ?? '未知';
-  }, [data.世界?.地点]);
-
-  const locationPath = useMemo(() => {
-    return parseWorldLocation(worldLocation);
-  }, [worldLocation]);
+  useEffect(() => {
+    resizeCanvasRef.current = resizeCanvas;
+  }, [resizeCanvas]);
 
   useEffect(() => {
     try {
-      const variables = getVariables({ type: 'chat' });
+      const variables = getVariables({ type: 'character' });
       const savedStrokes = _.get(variables, 'map_drawings', []);
       if (Array.isArray(savedStrokes)) {
         setDrawStrokes(savedStrokes as DrawStroke[]);
       }
-    } catch (error) {
-      console.error('[StatusMap] 读取地图涂画失败:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    let isActive = true;
-    const loadMapData = async () => {
-      try {
-        setMapDataError(null);
-        const response = await fetch(mapDataUrl, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`地图数据加载失败: ${response.status}`);
-        }
-        const json = (await response.json()) as {
-          markers: MapMarker[];
-          positionIndex: MapPositionIndex;
-        };
-        if (!isActive) return;
-        setMapData(json);
-      } catch (error) {
-        if (!isActive) return;
-        const message = error instanceof Error ? error.message : '地图数据加载失败';
-        console.error('[StatusMap] 读取地图标记失败:', error);
-        setMapDataError(message);
+      const savedMarkers = _.get(variables, 'map_markers', []);
+      if (Array.isArray(savedMarkers)) {
+        setMapMarkers(savedMarkers as MapMarker[]);
       }
-    };
-
-    loadMapData();
-    return () => {
-      isActive = false;
-    };
-  }, [mapDataUrl]);
-
-  const activeMapSource = useMemo(() => {
-    return mapSourceList.find(source => source.key === mapSourceKey) ?? mapSourceList[0];
-  }, [mapSourceKey]);
+    } catch (error) {
+      console.error('[StatusMap] 读取地图涂画/标记失败:', error);
+    }
+  }, [setMapMarkers]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        insertOrAssignVariables({ map_drawings: drawStrokes }, { type: 'chat' });
+        insertOrAssignVariables({ map_drawings: drawStrokes }, { type: 'character' });
       } catch (error) {
         console.error('[StatusMap] 保存地图涂画失败:', error);
       }
@@ -145,117 +167,80 @@ const MapTabContent: FC<WithMvuDataProps> = ({ data }) => {
   }, [drawStrokes]);
 
   useEffect(() => {
-    if (!inlineContainerRef.current) return;
+    const timer = window.setTimeout(() => {
+      try {
+        insertOrAssignVariables({ map_markers: mapMarkers }, { type: 'character' });
+      } catch (error) {
+        console.error('[StatusMap] 保存地图标记失败:', error);
+      }
+    }, 300);
 
-    const viewer = OpenSeadragon({
-      element: inlineContainerRef.current,
-      tileSources: mapSourceKey === 'large' ? mapSources.large : mapSources.small,
-      prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
-      showNavigator: true,
-      showNavigationControl: true,
-      showFullPageControl: false,
-      visibilityRatio: 1,
-      constrainDuringPan: true,
-      crossOriginPolicy: 'Anonymous',
-      gestureSettingsMouse: {
-        clickToZoom: false,
-        dblClickToZoom: true,
-        dragToPan: true,
-        scrollToZoom: true,
-      },
-      gestureSettingsTouch: {
-        pinchToZoom: true,
-        dragToPan: true,
-      },
-    });
+    return () => window.clearTimeout(timer);
+  }, [mapMarkers]);
 
-    viewerRef.current = viewer;
+  useMapViewer({
+    mapSourceKey,
+    viewerRef,
+    containerRef: inlineContainerRef,
+    onOpen: () => {
+      resizeCanvasRef.current();
+      redrawRef.current();
+      syncMarkerOverlaysRef.current();
+    },
+    onUpdate: () => {
+      redrawRef.current();
+    },
+    onBeforeOpen: () => {
+      const viewer = viewerRef.current;
+      if (!viewer) return;
+      overlayMapRef.current.clear();
+      viewer.clearOverlays();
+    },
+  });
 
-    const updateDrawLayerTransform = () => {
-      redraw();
+  useEffect(() => {
+    syncMarkerOverlaysRef.current();
+  }, [mapMarkers, activeMarkerId, syncMarkerOverlaysRef]);
+
+  useEffect(() => {
+    if (drawMode && markerAddMode) {
+      setMarkerAddMode(false);
+    }
+  }, [drawMode, markerAddMode, setMarkerAddMode]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    const handleCanvasClick = (event: unknown) => {
+      if (!markerAddMode || drawMode) return;
+      const imageItem = viewer.world.getItemAt(0);
+      if (!imageItem) return;
+      const size = imageItem.getContentSize();
+      if (!size.x || !size.y) return;
+      const canvasEvent = event as { position?: OpenSeadragon.Point };
+      if (!canvasEvent?.position) return;
+      const viewportPoint = viewer.viewport.pointFromPixel(canvasEvent.position);
+      const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+      addMarkerAt(_.clamp(imagePoint.x / size.x, 0, 1), _.clamp(imagePoint.y / size.y, 0, 1));
     };
-
-    viewer.addHandler('open', () => {
-      resizeCanvas();
-      updateDrawLayerTransform();
-    });
-
-    viewer.addHandler('animation', updateDrawLayerTransform);
-    viewer.addHandler('resize', updateDrawLayerTransform);
-
+    viewer.addHandler('canvas-click', handleCanvasClick);
     return () => {
-      viewerRef.current = null;
-      viewer.destroy();
+      viewer.removeHandler('canvas-click', handleCanvasClick);
     };
-  }, [mapSourceKey, resizeCanvas, redraw]);
-
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || !mapData) return;
-
-    viewer.clearOverlays();
-    mapData.markers.forEach(marker => {
-      const markerElement = document.createElement('div');
-      markerElement.className = styles.mapMarker;
-
-      const dot = document.createElement('span');
-      dot.className = styles.mapMarkerDot;
-      markerElement.appendChild(dot);
-
-      const card = document.createElement('div');
-      card.className = styles.mapMarkerCard;
-      card.innerHTML = `
-        <div class="${styles.mapMarkerTitle}">${marker.name}</div>
-        ${marker.summary ? `<div class="${styles.mapMarkerSummary}">${marker.summary}</div>` : ''}
-        ${marker.imageUrl ? `<img class="${styles.mapMarkerImage}" src="${marker.imageUrl}" />` : ''}
-      `;
-      markerElement.appendChild(card);
-
-      viewer.addOverlay({
-        element: markerElement,
-        location: new OpenSeadragon.Point(marker.position.nx, marker.position.ny),
-      });
-    });
-  }, [mapData]);
-
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || !mapData) return;
-    const focus = resolveMapFocus(mapData.positionIndex, locationPath);
-    if (focus.focusPoint) {
-      viewer.viewport.panTo(
-        new OpenSeadragon.Point(focus.focusPoint.nx, focus.focusPoint.ny),
-        true,
-      );
-      return;
-    }
-    if (focus.focusBounds) {
-      viewer.viewport.fitBounds(
-        new OpenSeadragon.Rect(
-          focus.focusBounds.x,
-          focus.focusBounds.y,
-          focus.focusBounds.width,
-          focus.focusBounds.height,
-        ),
-        true,
-      );
-      return;
-    }
-    viewer.viewport.goHome(true);
-  }, [locationPath, mapData]);
+  }, [addMarkerAt, drawMode, markerAddMode]);
 
   return (
     <div className={styles.mapTab}>
       <div className={styles.mapContent}>
         <div className={styles.toolbar}>
-          <div className={styles.sourceText}>地图类型：{activeMapSource?.name ?? '未知'}</div>
-          {mapDataError && <div className={styles.sourceText}>地图数据加载失败</div>}
           <div className={styles.toolbarActions}>
             <div className={styles.sourceActions}>
               {mapSourceList.map(source => (
                 <button
                   key={source.key}
-                  className={`${styles.sourceButton} ${mapSourceKey === source.key ? styles.sourceButtonActive : ''}`}
+                  className={`${styles.sourceButton} ${
+                    mapSourceKey === source.key ? styles.sourceButtonActive : ''
+                  }`}
                   onClick={() => setMapSourceKey(source.key)}
                   type="button"
                 >
@@ -271,16 +256,190 @@ const MapTabContent: FC<WithMvuDataProps> = ({ data }) => {
               {drawMode ? '退出绘制' : '进入绘制'}
             </button>
             {drawMode && (
+              <div className={styles.drawColorPalette}>
+                <span className={styles.drawColorLabel}>涂画颜色</span>
+                <div className={styles.drawColorOptions}>
+                  {drawColorOptions.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`${styles.drawColorButton} ${
+                        drawColor === color ? styles.drawColorButtonActive : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setDrawColor(color)}
+                      aria-label={`涂画颜色 ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            {drawMode && (
               <button className={styles.clearButton} onClick={inlineDraw.clearCanvas} type="button">
                 清空涂画
               </button>
             )}
           </div>
         </div>
+
+        <Collapse
+          className={styles.markerPanel}
+          defaultOpen={false}
+          title={
+            <div className={styles.markerPanelHeader}>
+              <span>标记编辑</span>
+              <span className={styles.markerPanelHint}>
+                {markerAddMode ? '点击地图添加标记' : '支持搜索、拖拽与编辑'}
+              </span>
+            </div>
+          }
+        >
+          <div className={styles.markerControls}>
+            <button
+              type="button"
+              className={`${styles.markerButton} ${markerAddMode ? styles.markerButtonActive : ''}`}
+              onClick={() => setMarkerAddMode(prev => !prev)}
+              disabled={drawMode}
+            >
+              {markerAddMode ? '取消新增' : '新增标记'}
+            </button>
+            <input
+              className={styles.markerSearchInput}
+              value={markerSearch}
+              onChange={event => setMarkerSearch(event.target.value)}
+              placeholder="搜索标记名称/分组/描述"
+            />
+          </div>
+          <div className={styles.markerBody}>
+            <div className={styles.markerList}>
+              {filteredMarkers.length === 0 ? (
+                <div className={styles.markerEmpty}>暂无标记</div>
+              ) : (
+                filteredMarkers.map(marker => (
+                  <button
+                    key={marker.id}
+                    type="button"
+                    className={`${styles.markerItem} ${
+                      marker.id === activeMarkerId ? styles.markerItemActive : ''
+                    }`}
+                    onClick={() => setActiveMarkerId(marker.id)}
+                  >
+                    <div className={styles.markerItemInfo}>
+                      <span
+                        className={styles.markerItemDot}
+                        style={{ backgroundColor: marker.color ?? DEFAULT_MARKER_COLOR }}
+                      />
+                      <div className={styles.markerItemText}>{marker.name || '未命名标记'}</div>
+                    </div>
+                    <div className={styles.markerItemActions}>
+                      <button
+                        type="button"
+                        className={styles.markerLocateButton}
+                        onClick={event => {
+                          event.stopPropagation();
+                          focusMarker(marker);
+                        }}
+                      >
+                        定位
+                      </button>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+            <div className={styles.markerEditor}>
+              {activeMarker ? (
+                <>
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>名称</label>
+                    <input
+                      className={styles.formInput}
+                      value={activeMarker.name}
+                      onChange={event =>
+                        updateMarker(activeMarker.id, { name: event.target.value })
+                      }
+                      placeholder="输入标记名称"
+                    />
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>分组</label>
+                    <input
+                      className={styles.formInput}
+                      value={activeMarker.group ?? ''}
+                      onChange={event =>
+                        updateMarker(activeMarker.id, { group: event.target.value })
+                      }
+                      placeholder="例如：城邦 / 遗迹"
+                    />
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>图标</label>
+                    <div className={styles.iconOptions}>
+                      {markerIconOptions.map(icon => (
+                        <button
+                          key={icon}
+                          type="button"
+                          className={`${styles.iconButton} ${
+                            activeMarker.icon === icon ? styles.iconButtonActive : ''
+                          }`}
+                          onClick={() => updateMarker(activeMarker.id, { icon })}
+                        >
+                          <i className={icon} />
+                          <span className={styles.iconButtonLabel}>{markerIconLabels[icon]}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>颜色</label>
+                    <div className={styles.markerColorOptions}>
+                      {markerColorOptions.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={`${styles.markerColorButton} ${
+                            activeMarker.color === color ? styles.markerColorButtonActive : ''
+                          }`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => updateMarker(activeMarker.id, { color })}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.formLabel}>描述</label>
+                    <textarea
+                      className={styles.formTextarea}
+                      value={activeMarker.description ?? ''}
+                      onChange={event =>
+                        updateMarker(activeMarker.id, { description: event.target.value })
+                      }
+                      placeholder="输入标记说明"
+                    />
+                  </div>
+                  <div className={styles.formActions}>
+                    <button
+                      type="button"
+                      className={styles.markerDeleteButton}
+                      onClick={() => deleteMarker(activeMarker.id)}
+                    >
+                      删除标记
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.markerEmpty}>选择一个标记开始编辑</div>
+              )}
+            </div>
+          </div>
+        </Collapse>
+
         <div className={styles.mapFrame}>
           <div ref={inlineContainerRef} className={styles.mapViewer} />
           <div
-            className={`${styles.drawLayer} ${drawMode ? styles.drawLayerActive : ''} ${!drawMode ? styles.drawLayerDisabled : ''}`}
+            className={`${styles.drawLayer} ${drawMode ? styles.drawLayerActive : ''} ${
+              !drawMode ? styles.drawLayerDisabled : ''
+            }`}
           >
             <canvas
               ref={inlineCanvasRef}

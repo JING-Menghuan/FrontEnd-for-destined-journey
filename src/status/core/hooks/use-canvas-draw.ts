@@ -6,6 +6,7 @@ interface UseCanvasDrawOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   initialStrokes?: DrawStroke[];
   onChange?: (strokes: DrawStroke[]) => void;
+  strokeColor?: string;
   mapPointFromEvent?: (
     event: React.PointerEvent<HTMLCanvasElement>,
     canvas: HTMLCanvasElement,
@@ -33,6 +34,7 @@ export const useCanvasDraw = ({
   canvasRef,
   initialStrokes,
   onChange,
+  strokeColor,
   mapPointFromEvent,
   mapPointToCanvas,
 }: UseCanvasDrawOptions) => {
@@ -48,8 +50,8 @@ export const useCanvasDraw = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     strokesRef.current.forEach(stroke => {
       if (stroke.points.length === 0) return;
-      ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.width;
+      ctx.strokeStyle = stroke.color ?? '#ffcc66';
+      ctx.lineWidth = stroke.width ?? 2;
       ctx.lineCap = 'round';
       ctx.beginPath();
       const first = stroke.points[0];
@@ -115,7 +117,7 @@ export const useCanvasDraw = ({
       if (!point) return;
       const stroke: DrawStroke = {
         points: [point],
-        color: '#ffcc66',
+        color: strokeColor ?? '#ffcc66',
         width: 2,
       };
       strokesRef.current.push(stroke);
@@ -123,7 +125,7 @@ export const useCanvasDraw = ({
       drawingRef.current.isDrawing = true;
       redrawAll();
     },
-    [enabled, canvasRef, mapPointFromEvent, redrawAll],
+    [enabled, canvasRef, mapPointFromEvent, redrawAll, strokeColor],
   );
 
   const handlePointerMove = useCallback(
