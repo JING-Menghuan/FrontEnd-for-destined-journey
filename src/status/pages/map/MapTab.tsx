@@ -22,6 +22,7 @@ export const MapTab: FC = () => {
   const [drawColor, setDrawColor] = useState(DEFAULT_DRAW_COLOR);
   const [mapSourceKey, setMapSourceKey] = useState<'small' | 'large'>('small');
   const [markerSearch, setMarkerSearch] = useState('');
+  const [isMapLoading, setIsMapLoading] = useState(true);
   // 编辑中的临时本地状态，避免每次输入都更新主状态
   const [editingName, setEditingName] = useState('');
   const [editingGroup, setEditingGroup] = useState('');
@@ -230,6 +231,7 @@ export const MapTab: FC = () => {
     viewerRef,
     containerRef: inlineContainerRef,
     onOpen: () => {
+      setIsMapLoading(false);
       resizeCanvasRef.current();
       redrawRef.current();
       syncMarkerOverlaysRef.current();
@@ -238,6 +240,7 @@ export const MapTab: FC = () => {
       redrawRef.current();
     },
     onBeforeOpen: () => {
+      setIsMapLoading(true);
       const viewer = viewerRef.current;
       if (!viewer) return;
       overlayMapRef.current.clear();
@@ -554,6 +557,11 @@ export const MapTab: FC = () => {
 
         <div className={styles.mapFrame}>
           <div ref={inlineContainerRef} className={styles.mapViewer} />
+          {isMapLoading && (
+            <div className={styles.mapPlaceholder}>
+              <span>地图加载中，请稍候…</span>
+            </div>
+          )}
           <div
             className={`${styles.drawLayer} ${drawMode ? styles.drawLayerActive : ''} ${
               !drawMode ? styles.drawLayerDisabled : ''

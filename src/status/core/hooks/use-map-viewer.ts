@@ -16,6 +16,8 @@ interface UseMapViewerResult {
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
+const CACHE_NAME = 'destined-journey-cache-v1';
+
 export const useMapViewer = ({
   mapSourceKey,
   onOpen,
@@ -29,6 +31,8 @@ export const useMapViewer = ({
   const onOpenRef = useRef(onOpen);
   const onUpdateRef = useRef(onUpdate);
   const onBeforeOpenRef = useRef(onBeforeOpen);
+  const objectUrlMapRef = useRef(new Map<'small' | 'large', string>());
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     onOpenRef.current = onOpen;
@@ -47,7 +51,6 @@ export const useMapViewer = ({
 
     const viewer = OpenSeadragon({
       element: containerRef.current,
-      tileSources: mapSourceKey === 'large' ? mapSources.large : mapSources.small,
       prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
       showNavigator: true,
       showNavigationControl: true,
@@ -70,34 +73,88 @@ export const useMapViewer = ({
 
     viewerRef.current = viewer;
 
-    const handleOpen = () => {
-      onOpenRef.current?.();
-    };
-
     const handleUpdate = () => {
       onUpdateRef.current?.();
     };
 
-    viewer.addHandler('open', handleOpen);
     viewer.addHandler('animation', handleUpdate);
     viewer.addHandler('resize', handleUpdate);
 
     return () => {
       viewerRef.current = null;
       viewer.destroy();
+      objectUrlMapRef.current.forEach(url => URL.revokeObjectURL(url));
+      objectUrlMapRef.current.clear();
+      abortRef.current?.abort();
+      abortRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer) return;
+
+    const sourceUrl = mapSources[mapSourceKey].url;
     onBeforeOpenRef.current?.();
-    const handleOpen = () => {
-      onOpenRef.current?.();
-      viewer.removeHandler('open', handleOpen);
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const openFromCache = async () => {
+      try {
+        const cachedObjectUrl = objectUrlMapRef.current.get(mapSourceKey);
+        if (cachedObjectUrl) {
+          const handleOpen = () => {
+            onOpenRef.current?.();
+            viewer.removeHandler('open', handleOpen);
+          };
+          viewer.addHandler('open', handleOpen);
+          viewer.open({ type: 'image', url: cachedObjectUrl });
+          return;
+        }
+
+        let response: Response | undefined;
+        if ('caches' in window) {
+          const cache = await caches.open(CACHE_NAME);
+          response = await cache.match(sourceUrl);
+        }
+
+        if (!response) {
+          response = await fetch(sourceUrl, {
+            mode: 'cors',
+            signal: controller.signal,
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          if ('caches' in window) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(sourceUrl, response.clone());
+          }
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        objectUrlMapRef.current.set(mapSourceKey, objectUrl);
+
+        const handleOpen = () => {
+          onOpenRef.current?.();
+          viewer.removeHandler('open', handleOpen);
+        };
+        viewer.addHandler('open', handleOpen);
+        viewer.open({ type: 'image', url: objectUrl });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error('[MapViewer] 地图加载失败:', error);
+      }
     };
-    viewer.addHandler('open', handleOpen);
-    viewer.open(mapSourceKey === 'large' ? mapSources.large : mapSources.small);
+
+    openFromCache();
+
+    return () => {
+      controller.abort();
+    };
   }, [mapSourceKey]);
 
   return { viewerRef, containerRef };
