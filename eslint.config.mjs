@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import importx from 'eslint-plugin-import-x';
 import pinia from 'eslint-plugin-pinia';
 import vue from 'eslint-plugin-vue';
@@ -18,27 +17,6 @@ export default [
   importx.flatConfigs.typescript,
   ...vue.configs['flat/recommended'],
   pinia.configs['recommended-flat'],
-  {
-    files: ['src/**/*.{html,vue,js,jsx,ts,tsx}'],
-    plugins: {
-      'better-tailwindcss': eslintPluginBetterTailwindcss,
-    },
-    rules: {
-      ...eslintPluginBetterTailwindcss.configs['recommended-warn'].rules,
-      ...eslintPluginBetterTailwindcss.configs['recommended-error'].rules,
-      'better-tailwindcss/enforce-consistent-line-wrapping': [
-        'off',
-        { preferSingleLine: true, printWidth: 120 },
-      ],
-      'better-tailwindcss/no-unregistered-classes': ['off', { ignore: ['fa-*'] }],
-    },
-    settings: {
-      'better-tailwindcss': {
-        entryPoint: 'src/global.css',
-        tailwindConfig: 'tailwind.config.js',
-      },
-    },
-  },
   {
     languageOptions: {
       parser: vueParser,
