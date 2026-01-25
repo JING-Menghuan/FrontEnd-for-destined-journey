@@ -108,8 +108,9 @@ import {
 // 只有在核心列表中存在的核心才会显示
 // key为核心完整值，value为note信息
 const SPECIAL_RECOMMEND_CORES: Record<string, SpecialRecommendConfig> = {
-  '命定系统-null核心(H)': { note: '我喜欢' },
-  '命定系统-读者核心(byAngtuck)': { note: '故事的读者，不明存在-九十九夜梦' },
+  '命定系统-null核心(H一串)': { note: '纯私货' },
+  '命定系统-读者核心(Angtuck)': { note: '故事的读者，不明存在-九十九夜梦' },
+  '命定系统-奶龙核心(K1nn)': { note: '奶龙好玩' },
 };
 
 const emit = defineEmits<{
