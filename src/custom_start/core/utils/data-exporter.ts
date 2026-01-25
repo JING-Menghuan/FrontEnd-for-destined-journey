@@ -55,6 +55,7 @@ export async function writeCharacterToMvu(
   );
   _.set(mvuData, 'stat_data.主角.背包', bagData);
   _.set(mvuData, 'stat_data.主角.金钱', Math.max(0, Math.round(character.money)));
+  _.set(mvuData, 'stat_data.主角.等级', character.level);
 
   // 命定之人
   const destinedOnesData = _.fromPairs(
