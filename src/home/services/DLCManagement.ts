@@ -562,6 +562,28 @@ export function hasExtensionChanges(
 }
 
 /**
+ * 收集所有被启用扩展的互斥目标
+ * @param extensionOptions 扩展选项列表
+ * @param localExtensionSelections 本地选择状态
+ * @returns 互斥目标数组
+ */
+function collectExclusionTargets(
+  extensionOptions: ExtensionOption[],
+  localExtensionSelections: Map<string, boolean>,
+): string[] {
+  const exclusionTargets: string[] = [];
+
+  for (const ext of extensionOptions) {
+    const isEnabled = localExtensionSelections.get(ext.extensionKey) ?? false;
+    if (isEnabled && ext.exclusionTarget) {
+      exclusionTargets.push(ext.exclusionTarget);
+    }
+  }
+
+  return exclusionTargets;
+}
+
+/**
  * 保存扩展选择到世界书
  * @param extensionOptions 扩展选项列表
  * @param localExtensionSelections 本地选择状态
@@ -587,6 +609,32 @@ export async function saveExtensionChanges(
         name: entry.name,
         enabled: newEnabled,
       });
+    }
+  }
+
+  // 收集所有被启用扩展的互斥目标
+  const exclusionTargets = collectExclusionTargets(extensionOptions, localExtensionSelections);
+
+  // 处理互斥逻辑：禁用包含 [互斥目标] 的条目
+  if (exclusionTargets.length > 0) {
+    // 为每个互斥目标创建匹配模式，匹配包含 [互斥目标] 的条目
+    for (const target of exclusionTargets) {
+      const pattern = new RegExp(`\\[${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`);
+      const matchingEntries = await getFilteredEntries(pattern, bookName);
+
+      for (const entry of matchingEntries as { name: string; enabled: boolean }[]) {
+        // 检查是否已经在更新列表中
+        const existingIndex = updatedEntries.findIndex(e => e.name === entry.name);
+        if (existingIndex === -1) {
+          updatedEntries.push({
+            name: entry.name,
+            enabled: false,
+          });
+        } else {
+          // 如果已存在，确保设置为禁用
+          updatedEntries[existingIndex].enabled = false;
+        }
+      }
     }
   }
 
