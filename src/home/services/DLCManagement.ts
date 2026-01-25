@@ -1,6 +1,48 @@
 import { getFilteredEntries, getWorldBookName, updateWorldBook } from './worldbookload&update';
 
 // ========================
+// 排序相关函数
+// ========================
+
+/**
+ * 按拼音首字母排序比较函数
+ * 中文按照拼音首字母排序，英文按照 a-z 排序
+ * @param a 第一个字符串
+ * @param b 第二个字符串
+ * @returns 比较结果
+ */
+function pinyinCompare(a: string, b: string): number {
+  return a.localeCompare(b, 'zh-CN', { sensitivity: 'base' });
+}
+
+/**
+ * 对角色选项进行排序（按 label 的拼音首字母排序）
+ * @param options 角色选项数组
+ * @returns 排序后的角色选项数组
+ */
+export function sortCharacterOptions(options: CharacterOption[]): CharacterOption[] {
+  return [...options].sort((a, b) => pinyinCompare(a.label, b.label));
+}
+
+/**
+ * 对事件选项进行排序（按 label 的拼音首字母排序）
+ * @param options 事件选项数组
+ * @returns 排序后的事件选项数组
+ */
+export function sortEventOptions(options: EventOption[]): EventOption[] {
+  return [...options].sort((a, b) => pinyinCompare(a.label, b.label));
+}
+
+/**
+ * 对扩展选项进行排序（按 label 的拼音首字母排序）
+ * @param options 扩展选项数组
+ * @returns 排序后的扩展选项数组
+ */
+export function sortExtensionOptions(options: ExtensionOption[]): ExtensionOption[] {
+  return [...options].sort((a, b) => pinyinCompare(a.label, b.label));
+}
+
+// ========================
 // 角色相关类型和常量
 // ========================
 
@@ -79,11 +121,16 @@ export interface ExtensionEntry {
 
 // 扩展选项类型（分组后的扩展）
 export interface ExtensionOption {
-  extensionKey: string; // 扩展唯一标识，如 "[扩展][无尽深渊地城扩展][!原版无尽深渊地城]"
+  extensionKey: string; // 扩展唯一标识，如 "[扩展][无尽深渊地城扩展]"
   label: string; // 显示名称，如 "无尽深渊地城扩展"
   author: string; // 作者，如 "Hilo"
   info: string; // 其他信息
-  exclusionTarget: string | null; // 互斥目标，如 "原版无尽深渊地城"（从 [!xxx] 中提取）
+  // 互斥目标数组 - [!xxx] 格式，开启时关闭包含 [xxx] 的扩展
+  exclusionTargets: string[];
+  // 替换目标数组 - [>xxx] 格式，开启时关闭包含 [xxx] 的条目，关闭时恢复
+  replacementTargets: string[];
+  // 前置需求数组 - [<xxx] 格式，需要 [xxx] 扩展处于开启状态
+  prerequisiteTargets: string[];
   entries: ExtensionEntry[]; // 该扩展下的所有条目
   enabled: boolean; // 扩展是否启用（所有条目启用时为true）
 }
@@ -91,14 +138,20 @@ export interface ExtensionOption {
 // 扩展条目匹配模式 - 匹配以"[扩展]"开头的条目
 const EXTENSION_PATTERN = /^\[扩展\]/;
 
-// 提取扩展Key的正则 - 只匹配 "[扩展][扩展名]" 格式（不包含互斥标记，以便同一扩展只需标记一次）
+// 提取扩展Key的正则 - 只匹配 "[扩展][扩展名]" 格式（不包含关系标记，以便同一扩展只需标记一次）
 const EXTENSION_KEY_PATTERN = /^(\[扩展\]\[[^\]]+\])/;
 
 // 提取扩展显示名称的正则 - 匹配 "[扩展][扩展名]" 中的扩展名
 const EXTENSION_LABEL_PATTERN = /^\[扩展\]\[([^\]]+)\]/;
 
-// 提取互斥目标的正则 - 匹配 "[!互斥条目]" 中的互斥条目名
-const EXTENSION_EXCLUSION_PATTERN = /\[!([^\]]+)\]/;
+// 提取互斥目标的正则 - 匹配所有 "[!互斥条目]" 中的互斥条目名（全局匹配）
+const EXTENSION_EXCLUSION_PATTERN = /\[!([^\]]+)\]/g;
+
+// 提取替换目标的正则 - 匹配所有 "[>替换条目]" 中的替换条目名（全局匹配）
+const EXTENSION_REPLACEMENT_PATTERN = /\[>([^\]]+)\]/g;
+
+// 提取前置需求的正则 - 匹配所有 "[<前置扩展]" 中的前置扩展名（全局匹配）
+const EXTENSION_PREREQUISITE_PATTERN = /\[<([^\]]+)\]/g;
 
 /**
  * 扩展状态初始值
@@ -162,12 +215,15 @@ export async function loadCharacterOptions(): Promise<{
     };
   });
 
+  // 对角色选项进行排序（按拼音首字母）
+  const sortedCharacterOptions = sortCharacterOptions(characterOptions);
+
   // 初始化本地选择列表（从世界书的原始状态复制）
   const localCharacterSelections = new Map(
-    characterOptions.map(char => [char.value, char.enabled]),
+    sortedCharacterOptions.map(char => [char.value, char.enabled]),
   );
 
-  return { characterOptions, localCharacterSelections, bookName };
+  return { characterOptions: sortedCharacterOptions, localCharacterSelections, bookName };
 }
 
 /**
@@ -320,10 +376,15 @@ export async function loadEventOptions(): Promise<{
     });
   }
 
-  // 初始化本地选择列表（从分组状态复制）
-  const localEventSelections = new Map(eventOptions.map(event => [event.eventKey, event.enabled]));
+  // 对事件选项进行排序（按拼音首字母）
+  const sortedEventOptions = sortEventOptions(eventOptions);
 
-  return { eventOptions, localEventSelections, bookName };
+  // 初始化本地选择列表（从分组状态复制）
+  const localEventSelections = new Map(
+    sortedEventOptions.map(event => [event.eventKey, event.enabled]),
+  );
+
+  return { eventOptions: sortedEventOptions, localEventSelections, bookName };
 }
 
 /**
@@ -425,28 +486,90 @@ function extractExtensionLabel(extensionKey: string): string {
 }
 
 /**
- * 从条目名称中提取互斥目标
- * @param entryName 条目名称，如 "[扩展][无尽深渊地城扩展][!原版无尽深渊地城]无尽深渊地城-控制(Hilo)"
- * @returns 互斥目标，如 "原版无尽深渊地城"，如果没有则返回null
+ * 从条目名称中提取所有互斥目标
+ * @param entryName 条目名称，如 "[扩展][无尽深渊地城扩展][!原版无尽深渊地城][!另一个目标]..."
+ * @returns 互斥目标数组
  */
-function extractExclusionTargetFromEntry(entryName: string): string | null {
-  const match = entryName.match(EXTENSION_EXCLUSION_PATTERN);
-  return match ? match[1] : null;
+function extractExclusionTargetsFromEntry(entryName: string): string[] {
+  const targets: string[] = [];
+  const regex = new RegExp(EXTENSION_EXCLUSION_PATTERN.source, 'g');
+  let match;
+  while ((match = regex.exec(entryName)) !== null) {
+    targets.push(match[1]);
+  }
+  return targets;
 }
 
 /**
- * 从扩展条目数组中提取互斥目标（只需要有一个条目包含标记即可）
- * @param entries 扩展下的所有条目
- * @returns 互斥目标，如果没有则返回null
+ * 从条目名称中提取所有替换目标
+ * @param entryName 条目名称，如 "[扩展][xxx][>被替换条目]..."
+ * @returns 替换目标数组
  */
-function extractExtensionExclusionTarget(entries: ExtensionEntry[]): string | null {
-  for (const entry of entries) {
-    const target = extractExclusionTargetFromEntry(entry.name);
-    if (target) {
-      return target;
-    }
+function extractReplacementTargetsFromEntry(entryName: string): string[] {
+  const targets: string[] = [];
+  const regex = new RegExp(EXTENSION_REPLACEMENT_PATTERN.source, 'g');
+  let match;
+  while ((match = regex.exec(entryName)) !== null) {
+    targets.push(match[1]);
   }
-  return null;
+  return targets;
+}
+
+/**
+ * 从条目名称中提取所有前置需求
+ * @param entryName 条目名称，如 "[扩展][xxx][<前置扩展]..."
+ * @returns 前置需求数组
+ */
+function extractPrerequisiteTargetsFromEntry(entryName: string): string[] {
+  const targets: string[] = [];
+  const regex = new RegExp(EXTENSION_PREREQUISITE_PATTERN.source, 'g');
+  let match;
+  while ((match = regex.exec(entryName)) !== null) {
+    targets.push(match[1]);
+  }
+  return targets;
+}
+
+/**
+ * 从扩展条目数组中提取所有互斥目标（合并所有条目的标记并去重）
+ * @param entries 扩展下的所有条目
+ * @returns 互斥目标数组
+ */
+function extractExtensionExclusionTargets(entries: ExtensionEntry[]): string[] {
+  const allTargets = new Set<string>();
+  for (const entry of entries) {
+    const targets = extractExclusionTargetsFromEntry(entry.name);
+    targets.forEach(t => allTargets.add(t));
+  }
+  return Array.from(allTargets);
+}
+
+/**
+ * 从扩展条目数组中提取所有替换目标（合并所有条目的标记并去重）
+ * @param entries 扩展下的所有条目
+ * @returns 替换目标数组
+ */
+function extractExtensionReplacementTargets(entries: ExtensionEntry[]): string[] {
+  const allTargets = new Set<string>();
+  for (const entry of entries) {
+    const targets = extractReplacementTargetsFromEntry(entry.name);
+    targets.forEach(t => allTargets.add(t));
+  }
+  return Array.from(allTargets);
+}
+
+/**
+ * 从扩展条目数组中提取所有前置需求（合并所有条目的标记并去重）
+ * @param entries 扩展下的所有条目
+ * @returns 前置需求数组
+ */
+function extractExtensionPrerequisiteTargets(entries: ExtensionEntry[]): string[] {
+  const allTargets = new Set<string>();
+  for (const entry of entries) {
+    const targets = extractPrerequisiteTargetsFromEntry(entry.name);
+    targets.forEach(t => allTargets.add(t));
+  }
+  return Array.from(allTargets);
 }
 
 /**
@@ -510,46 +633,123 @@ export async function loadExtensionOptions(): Promise<{
       label: extractExtensionLabel(extensionKey),
       author,
       info,
-      exclusionTarget: extractExtensionExclusionTarget(groupEntries),
+      exclusionTargets: extractExtensionExclusionTargets(groupEntries),
+      replacementTargets: extractExtensionReplacementTargets(groupEntries),
+      prerequisiteTargets: extractExtensionPrerequisiteTargets(groupEntries),
       entries: groupEntries,
       enabled: allEnabled,
     });
   }
 
+  // 对扩展选项进行排序（按拼音首字母）
+  const sortedExtensionOptions = sortExtensionOptions(extensionOptions);
+
   // 初始化本地选择列表（从分组状态复制）
   const localExtensionSelections = new Map(
-    extensionOptions.map(ext => [ext.extensionKey, ext.enabled]),
+    sortedExtensionOptions.map(ext => [ext.extensionKey, ext.enabled]),
   );
 
-  return { extensionOptions, localExtensionSelections, bookName };
+  return { extensionOptions: sortedExtensionOptions, localExtensionSelections, bookName };
 }
 
 /**
- * 切换扩展启用状态（更新本地状态，返回新的选择Map）
- * 处理互斥逻辑：如果开启的扩展有互斥目标，则关闭所有包含该互斥目标的扩展
+ * 检查前置需求是否满足
+ * @param extensionOptions 扩展选项列表
+ * @param localExtensionSelections 本地选择状态
+ * @param prerequisiteTargets 前置需求目标数组
+ * @returns { satisfied: boolean, missingPrerequisites: string[] }
+ */
+function checkPrerequisites(
+  extensionOptions: ExtensionOption[],
+  localExtensionSelections: Map<string, boolean>,
+  prerequisiteTargets: string[],
+): { satisfied: boolean; missingPrerequisites: string[] } {
+  const missingPrerequisites: string[] = [];
+
+  for (const target of prerequisiteTargets) {
+    // 查找包含 [target] 的扩展
+    const prerequisiteExtension = extensionOptions.find(ext =>
+      ext.extensionKey.includes(`[${target}]`),
+    );
+    if (prerequisiteExtension) {
+      const isEnabled = localExtensionSelections.get(prerequisiteExtension.extensionKey) ?? false;
+      if (!isEnabled) {
+        missingPrerequisites.push(target);
+      }
+    } else {
+      // 如果找不到对应的扩展，记录为缺失
+      missingPrerequisites.push(target);
+    }
+  }
+
+  return {
+    satisfied: missingPrerequisites.length === 0,
+    missingPrerequisites,
+  };
+}
+
+/**
+ * 切换扩展启用状态的结果
+ */
+export interface ToggleExtensionResult {
+  selections: Map<string, boolean>;
+  success: boolean;
+  error?: string;
+  missingPrerequisites?: string[];
+}
+
+/**
+ * 切换扩展启用状态（更新本地状态，返回新的选择Map和结果状态）
+ *
+ * 处理三种关系：
+ * 1. 互斥 [!xxx]：开启时关闭包含 [xxx] 的扩展（扩展之间互斥）
+ * 2. 替换 [>xxx]：开启时关闭包含 [xxx] 的条目，关闭时无特殊处理（保存时处理恢复）
+ * 3. 前置需求 [<xxx]：开启时检查 [xxx] 扩展是否已开启
  */
 export function toggleExtension(
   localExtensionSelections: Map<string, boolean>,
   extensionOptions: ExtensionOption[],
   extensionKey: string,
-): Map<string, boolean> {
+): ToggleExtensionResult {
   const newSelections = new Map(localExtensionSelections);
   const currentEnabled = newSelections.get(extensionKey) ?? false;
   const newEnabled = !currentEnabled;
 
+  const targetExtension = extensionOptions.find(ext => ext.extensionKey === extensionKey);
+
+  // 如果正在启用扩展，需要检查前置需求
+  if (newEnabled && targetExtension) {
+    // 检查前置需求
+    if (targetExtension.prerequisiteTargets.length > 0) {
+      const { satisfied, missingPrerequisites } = checkPrerequisites(
+        extensionOptions,
+        newSelections,
+        targetExtension.prerequisiteTargets,
+      );
+
+      if (!satisfied) {
+        return {
+          selections: localExtensionSelections, // 返回原始选择，不做改变
+          success: false,
+          error: `缺少前置需求: ${missingPrerequisites.join(', ')}`,
+          missingPrerequisites,
+        };
+      }
+    }
+  }
+
   newSelections.set(extensionKey, newEnabled);
 
   // 如果正在启用扩展，处理互斥逻辑
-  if (newEnabled) {
-    const targetExtension = extensionOptions.find(ext => ext.extensionKey === extensionKey);
-    if (targetExtension?.exclusionTarget) {
-      const exclusionTarget = targetExtension.exclusionTarget;
+  if (newEnabled && targetExtension) {
+    // 处理互斥目标
+    for (const exclusionTarget of targetExtension.exclusionTargets) {
       // 查找所有包含 [互斥目标] 的扩展并禁用
       for (const ext of extensionOptions) {
-        // 检查扩展Key是否包含 [互斥目标]（注意不是 [!互斥目标]）
+        // 检查扩展label是否匹配互斥目标，或扩展Key是否包含 [互斥目标]
         if (
           ext.extensionKey !== extensionKey &&
-          ext.extensionKey.includes(`[${exclusionTarget}]`)
+          (ext.label === exclusionTarget || ext.extensionKey.includes(`[${exclusionTarget}]`))
         ) {
           newSelections.set(ext.extensionKey, false);
         }
@@ -557,7 +757,24 @@ export function toggleExtension(
     }
   }
 
-  return newSelections;
+  // 如果正在禁用扩展，检查是否有其他扩展依赖此扩展作为前置需求
+  if (!newEnabled && targetExtension) {
+    // 查找所有依赖当前扩展的扩展并禁用它们
+    for (const ext of extensionOptions) {
+      if (ext.extensionKey !== extensionKey) {
+        const isEnabled = newSelections.get(ext.extensionKey) ?? false;
+        if (isEnabled && ext.prerequisiteTargets.includes(targetExtension.label)) {
+          // 递归禁用依赖此扩展的扩展
+          newSelections.set(ext.extensionKey, false);
+        }
+      }
+    }
+  }
+
+  return {
+    selections: newSelections,
+    success: true,
+  };
 }
 
 /**
@@ -577,12 +794,12 @@ export function hasExtensionChanges(
 }
 
 /**
- * 收集所有被启用扩展的互斥目标
+ * 收集所有被启用扩展的互斥目标（需要禁用的目标）
  * @param extensionOptions 扩展选项列表
  * @param localExtensionSelections 本地选择状态
  * @returns 互斥目标数组
  */
-function collectExclusionTargets(
+function collectExclusionTargetsToDisable(
   extensionOptions: ExtensionOption[],
   localExtensionSelections: Map<string, boolean>,
 ): string[] {
@@ -590,12 +807,64 @@ function collectExclusionTargets(
 
   for (const ext of extensionOptions) {
     const isEnabled = localExtensionSelections.get(ext.extensionKey) ?? false;
-    if (isEnabled && ext.exclusionTarget) {
-      exclusionTargets.push(ext.exclusionTarget);
+    if (isEnabled && ext.exclusionTargets.length > 0) {
+      exclusionTargets.push(...ext.exclusionTargets);
     }
   }
 
-  return exclusionTargets;
+  // 去重
+  return [...new Set(exclusionTargets)];
+}
+
+/**
+ * 收集所有被启用扩展的替换目标（需要禁用的条目）
+ * @param extensionOptions 扩展选项列表
+ * @param localExtensionSelections 本地选择状态
+ * @returns 替换目标数组
+ */
+function collectReplacementTargetsToDisable(
+  extensionOptions: ExtensionOption[],
+  localExtensionSelections: Map<string, boolean>,
+): string[] {
+  const replacementTargets: string[] = [];
+
+  for (const ext of extensionOptions) {
+    const isEnabled = localExtensionSelections.get(ext.extensionKey) ?? false;
+    if (isEnabled && ext.replacementTargets.length > 0) {
+      replacementTargets.push(...ext.replacementTargets);
+    }
+  }
+
+  // 去重
+  return [...new Set(replacementTargets)];
+}
+
+/**
+ * 收集所有被禁用扩展的替换目标（需要恢复启用的条目）
+ * @param extensionOptions 扩展选项列表
+ * @param localExtensionSelections 本地选择状态
+ * @param originalExtensionStates 原始扩展状态（用于判断扩展是否从启用变为禁用）
+ * @returns 替换目标数组
+ */
+function collectReplacementTargetsToEnable(
+  extensionOptions: ExtensionOption[],
+  localExtensionSelections: Map<string, boolean>,
+  originalExtensionStates: Map<string, boolean>,
+): string[] {
+  const replacementTargets: string[] = [];
+
+  for (const ext of extensionOptions) {
+    const isEnabled = localExtensionSelections.get(ext.extensionKey) ?? false;
+    const wasEnabled = originalExtensionStates.get(ext.extensionKey) ?? false;
+
+    // 只有当扩展从启用变为禁用时，才恢复替换目标
+    if (!isEnabled && wasEnabled && ext.replacementTargets.length > 0) {
+      replacementTargets.push(...ext.replacementTargets);
+    }
+  }
+
+  // 去重
+  return [...new Set(replacementTargets)];
 }
 
 /**
@@ -614,6 +883,11 @@ export async function saveExtensionChanges(
     return extensionOptions;
   }
 
+  // 构建原始扩展状态映射
+  const originalExtensionStates = new Map(
+    extensionOptions.map(ext => [ext.extensionKey, ext.enabled]),
+  );
+
   // 构建更新列表：将每个扩展的所有条目设置为相同的启用状态
   const updatedEntries: Array<{ name: string; enabled: boolean }> = [];
 
@@ -627,14 +901,35 @@ export async function saveExtensionChanges(
     }
   }
 
-  // 收集所有被启用扩展的互斥目标
-  const exclusionTargets = collectExclusionTargets(extensionOptions, localExtensionSelections);
+  // 收集所有被启用扩展的互斥目标（需要禁用）
+  const exclusionTargetsToDisable = collectExclusionTargetsToDisable(
+    extensionOptions,
+    localExtensionSelections,
+  );
 
-  // 处理互斥逻辑：禁用包含 [互斥目标] 的条目
-  if (exclusionTargets.length > 0) {
-    // 为每个互斥目标创建匹配模式，匹配包含 [互斥目标] 的条目
-    for (const target of exclusionTargets) {
-      const pattern = new RegExp(`\\[${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`);
+  // 收集所有被启用扩展的替换目标（需要禁用）
+  const replacementTargetsToDisable = collectReplacementTargetsToDisable(
+    extensionOptions,
+    localExtensionSelections,
+  );
+
+  // 收集所有被禁用扩展的替换目标（需要恢复启用）
+  const replacementTargetsToEnable = collectReplacementTargetsToEnable(
+    extensionOptions,
+    localExtensionSelections,
+    originalExtensionStates,
+  );
+
+  // 从需要启用的替换目标中排除需要禁用的目标（禁用优先级更高）
+  const filteredReplacementTargetsToEnable = replacementTargetsToEnable.filter(
+    target =>
+      !replacementTargetsToDisable.includes(target) && !exclusionTargetsToDisable.includes(target),
+  );
+
+  // 处理互斥逻辑：禁用包含 [互斥目标] 的扩展条目
+  if (exclusionTargetsToDisable.length > 0) {
+    for (const target of exclusionTargetsToDisable) {
+      const pattern = new RegExp(`\\[${escapeRegExp(target)}\\]`);
       const matchingEntries = await getFilteredEntries(pattern, bookName);
 
       for (const entry of matchingEntries as { name: string; enabled: boolean }[]) {
@@ -648,6 +943,51 @@ export async function saveExtensionChanges(
         } else {
           // 如果已存在，确保设置为禁用
           updatedEntries[existingIndex].enabled = false;
+        }
+      }
+    }
+  }
+
+  // 处理替换逻辑（禁用）：禁用包含 [替换目标] 的条目
+  if (replacementTargetsToDisable.length > 0) {
+    for (const target of replacementTargetsToDisable) {
+      const pattern = new RegExp(`\\[${escapeRegExp(target)}\\]`);
+      const matchingEntries = await getFilteredEntries(pattern, bookName);
+
+      for (const entry of matchingEntries as { name: string; enabled: boolean }[]) {
+        // 检查是否已经在更新列表中
+        const existingIndex = updatedEntries.findIndex(e => e.name === entry.name);
+        if (existingIndex === -1) {
+          updatedEntries.push({
+            name: entry.name,
+            enabled: false,
+          });
+        } else {
+          // 如果已存在，确保设置为禁用（替换目标禁用优先级高）
+          updatedEntries[existingIndex].enabled = false;
+        }
+      }
+    }
+  }
+
+  // 处理替换逻辑（恢复启用）：启用包含 [替换目标] 的条目（当扩展关闭时）
+  if (filteredReplacementTargetsToEnable.length > 0) {
+    for (const target of filteredReplacementTargetsToEnable) {
+      const pattern = new RegExp(`\\[${escapeRegExp(target)}\\]`);
+      const matchingEntries = await getFilteredEntries(pattern, bookName);
+
+      for (const entry of matchingEntries as { name: string; enabled: boolean }[]) {
+        // 检查是否已经在更新列表中
+        const existingIndex = updatedEntries.findIndex(e => e.name === entry.name);
+        if (existingIndex === -1) {
+          updatedEntries.push({
+            name: entry.name,
+            enabled: true,
+          });
+        } else if (updatedEntries[existingIndex].enabled !== false) {
+          // 如果已存在且不是被禁用的目标，则启用
+          // 注意：禁用的优先级更高，所以这里不覆盖已禁用的条目
+          updatedEntries[existingIndex].enabled = true;
         }
       }
     }
@@ -667,4 +1007,11 @@ export async function saveExtensionChanges(
       })),
     };
   });
+}
+
+/**
+ * 辅助函数：转义正则表达式特殊字符
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

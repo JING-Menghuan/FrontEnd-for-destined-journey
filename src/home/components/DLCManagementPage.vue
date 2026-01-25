@@ -173,10 +173,28 @@
                     >{{ getSelectedExtensionInfo.entries.length }} 个条目</span
                   >
                 </div>
-                <div v-if="getSelectedExtensionInfo.exclusionTarget" class="detail-row">
+                <div v-if="getSelectedExtensionInfo.exclusionTargets.length > 0" class="detail-row">
                   <span class="detail-label">互斥:</span>
                   <span class="detail-value exclusion-hint">{{
-                    getSelectedExtensionInfo.exclusionTarget
+                    getSelectedExtensionInfo.exclusionTargets.join(', ')
+                  }}</span>
+                </div>
+                <div
+                  v-if="getSelectedExtensionInfo.replacementTargets.length > 0"
+                  class="detail-row"
+                >
+                  <span class="detail-label">替换:</span>
+                  <span class="detail-value replacement-hint">{{
+                    getSelectedExtensionInfo.replacementTargets.join(', ')
+                  }}</span>
+                </div>
+                <div
+                  v-if="getSelectedExtensionInfo.prerequisiteTargets.length > 0"
+                  class="detail-row"
+                >
+                  <span class="detail-label">前置:</span>
+                  <span class="detail-value prerequisite-hint">{{
+                    getSelectedExtensionInfo.prerequisiteTargets.join(', ')
                   }}</span>
                 </div>
                 <div class="detail-row">
@@ -322,11 +340,18 @@ function handleToggleEvent(eventKey: string) {
 }
 
 function handleToggleExtension(extensionKey: string) {
-  localExtensionSelections.value = toggleExtension(
+  const result = toggleExtension(
     localExtensionSelections.value,
     extensionOptions.value,
     extensionKey,
   );
+
+  if (result.success) {
+    localExtensionSelections.value = result.selections;
+  } else {
+    // 前置需求不满足时显示错误提示
+    alert(result.error || '操作失败');
+  }
 }
 
 /**
@@ -607,6 +632,16 @@ onMounted(() => {
 
 .exclusion-hint {
   color: #856404;
+  font-style: italic;
+}
+
+.replacement-hint {
+  color: #0c5460;
+  font-style: italic;
+}
+
+.prerequisite-hint {
+  color: #155724;
   font-style: italic;
 }
 
