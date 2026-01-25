@@ -91,8 +91,8 @@ export interface ExtensionOption {
 // 扩展条目匹配模式 - 匹配以"[扩展]"开头的条目
 const EXTENSION_PATTERN = /^\[扩展\]/;
 
-// 提取扩展Key的正则 - 匹配 "[扩展][扩展名]" 或 "[扩展][扩展名][!互斥条目]" 格式
-const EXTENSION_KEY_PATTERN = /^(\[扩展\]\[[^\]]+\](?:\[![^\]]+\])?)/;
+// 提取扩展Key的正则 - 只匹配 "[扩展][扩展名]" 格式（不包含互斥标记，以便同一扩展只需标记一次）
+const EXTENSION_KEY_PATTERN = /^(\[扩展\]\[[^\]]+\])/;
 
 // 提取扩展显示名称的正则 - 匹配 "[扩展][扩展名]" 中的扩展名
 const EXTENSION_LABEL_PATTERN = /^\[扩展\]\[([^\]]+)\]/;
@@ -425,13 +425,28 @@ function extractExtensionLabel(extensionKey: string): string {
 }
 
 /**
- * 从扩展Key中提取互斥目标
- * @param extensionKey 扩展Key，如 "[扩展][无尽深渊地城扩展][!原版无尽深渊地城]"
+ * 从条目名称中提取互斥目标
+ * @param entryName 条目名称，如 "[扩展][无尽深渊地城扩展][!原版无尽深渊地城]无尽深渊地城-控制(Hilo)"
  * @returns 互斥目标，如 "原版无尽深渊地城"，如果没有则返回null
  */
-function extractExclusionTarget(extensionKey: string): string | null {
-  const match = extensionKey.match(EXTENSION_EXCLUSION_PATTERN);
+function extractExclusionTargetFromEntry(entryName: string): string | null {
+  const match = entryName.match(EXTENSION_EXCLUSION_PATTERN);
   return match ? match[1] : null;
+}
+
+/**
+ * 从扩展条目数组中提取互斥目标（只需要有一个条目包含标记即可）
+ * @param entries 扩展下的所有条目
+ * @returns 互斥目标，如果没有则返回null
+ */
+function extractExtensionExclusionTarget(entries: ExtensionEntry[]): string | null {
+  for (const entry of entries) {
+    const target = extractExclusionTargetFromEntry(entry.name);
+    if (target) {
+      return target;
+    }
+  }
+  return null;
 }
 
 /**
@@ -495,7 +510,7 @@ export async function loadExtensionOptions(): Promise<{
       label: extractExtensionLabel(extensionKey),
       author,
       info,
-      exclusionTarget: extractExclusionTarget(extensionKey),
+      exclusionTarget: extractExtensionExclusionTarget(groupEntries),
       entries: groupEntries,
       enabled: allEnabled,
     });
