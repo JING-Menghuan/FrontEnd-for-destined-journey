@@ -15,9 +15,9 @@ import type {
   Attributes,
   Background,
   CharacterConfig,
-  DestinedOne,
   Equipment,
   Item,
+  Partner,
   Skill,
 } from '../types';
 
@@ -56,8 +56,8 @@ export const useCharacterStore = defineStore('character', () => {
   const selectedItems = ref<Item[]>([]);
   const selectedSkills = ref<Skill[]>([]);
 
-  // 选择的命定之人和背景
-  const selectedDestinedOnes = ref<DestinedOne[]>([]);
+  // 选择的伙伴和背景
+  const selectedPartners = ref<Partner[]>([]);
   const selectedBackground = ref<Background | null>(null);
 
   // Computed
@@ -79,8 +79,8 @@ export const useCharacterStore = defineStore('character', () => {
       _.sumBy(selectedItems.value, 'cost'),
       // 技能消耗
       _.sumBy(selectedSkills.value, 'cost'),
-      // 命定之人消耗
-      _.sumBy(selectedDestinedOnes.value, 'cost'),
+      // 伙伴消耗
+      _.sumBy(selectedPartners.value, 'cost'),
       // 金钱兑换消耗 (1:10)
       Math.ceil(character.value.money / 10),
       // 命运点数兑换消耗 (1:2)
@@ -173,27 +173,27 @@ export const useCharacterStore = defineStore('character', () => {
     selectedSkills.value = [];
   };
 
-  // 清空命定之人
-  const clearDestinedOnes = () => {
-    selectedDestinedOnes.value = [];
+  // 清空伙伴
+  const clearPartners = () => {
+    selectedPartners.value = [];
   };
 
-  // 清空所有选择（包括装备、道具、技能、命定之人、背景）
+  // 清空所有选择（包括装备、道具、技能、伙伴、背景）
   const clearAllSelections = () => {
     selectedEquipments.value = [];
     selectedItems.value = [];
     selectedSkills.value = [];
-    selectedDestinedOnes.value = [];
+    selectedPartners.value = [];
     selectedBackground.value = null;
   };
 
-  // 命定之人相关操作
-  const addDestinedOne = (destinedOne: DestinedOne) => {
-    selectedDestinedOnes.value.push(destinedOne);
+  // 伙伴相关操作
+  const addPartner = (partner: Partner) => {
+    selectedPartners.value.push(partner);
   };
 
-  const removeDestinedOne = (destinedOne: DestinedOne) => {
-    _.remove(selectedDestinedOnes.value, d => d.name === destinedOne.name);
+  const removePartner = (partner: Partner) => {
+    _.remove(selectedPartners.value, p => p.name === partner.name);
   };
 
   // 背景相关操作
@@ -282,7 +282,7 @@ export const useCharacterStore = defineStore('character', () => {
     selectedEquipments,
     selectedItems,
     selectedSkills,
-    selectedDestinedOnes,
+    selectedPartners,
     selectedBackground,
 
     usedAP,
@@ -303,10 +303,10 @@ export const useCharacterStore = defineStore('character', () => {
     addSkill,
     removeSkill,
     clearSelections,
-    clearDestinedOnes,
+    clearPartners,
     clearAllSelections,
-    addDestinedOne,
-    removeDestinedOne,
+    addPartner,
+    removePartner,
     setBackground,
     resetDestinyExchange,
   };

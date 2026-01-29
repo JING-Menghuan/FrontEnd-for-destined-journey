@@ -1,27 +1,27 @@
-import { DestinedOne } from '../types';
-import { loadCustomDestinedOnes, mergeData } from '../utils/loader';
+import { Partner } from '../types';
+import { loadCustomPartners, mergeData } from '../utils/loader';
 
-interface DestinedOnes {
-  [key: string]: DestinedOne[];
+interface Partners {
+  [key: string]: Partner[];
 }
 
 /**
- * 初始命定之人对象
+ * 初始伙伴对象
  */
-const DestinedOnes: DestinedOnes = {};
+const DefaultPartners: Partners = {};
 
-// 加载并合并自定义初始命定之人数据
-let mergedDestinedOnesData: DestinedOnes | null = null;
+// 加载并合并自定义初始伙伴数据
+let mergedPartners: Partners | null = null;
 
-// 初始化命定之人数据（加载自定义数据并合并）
-async function initDestinedOnesData(): Promise<void> {
-  const customDestinedOnes = await loadCustomDestinedOnes();
-  mergedDestinedOnesData = mergeData(DestinedOnes, customDestinedOnes) as DestinedOnes;
+// 初始化伙伴数据（加载自定义数据并合并）
+async function initPartnersData(): Promise<void> {
+  const customPartners = await loadCustomPartners();
+  mergedPartners = mergeData(DefaultPartners, customPartners) as Partners;
 }
 
-// 获取所有命定之人数据
-export function getAllDestinedOnes(): DestinedOnes {
-  return mergedDestinedOnesData || DestinedOnes;
+// 获取所有伙伴数据
+export function getAllPartners(): Partners {
+  return mergedPartners || DefaultPartners;
 }
 
-initDestinedOnesData();
+initPartnersData();

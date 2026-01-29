@@ -75,7 +75,7 @@ const player = z
   });
 
 /**
- * 命定之人信息
+ * 关系列表信息
  */
 const partners = z
   .record(
@@ -83,12 +83,12 @@ const partners = z
     z
       .object({
         ...IdentitySchema.shape,
-        是否在场: z.boolean().prefault(false),
+        在场: z.boolean().prefault(false),
         性格: z.string().prefault(''),
         喜爱: z.string().prefault(''),
         外貌: z.string().prefault(''),
         着装: z.string().prefault(''),
-        是否缔结契约: z.boolean().prefault(false),
+        命定契约: z.boolean().prefault(false),
         好感度: clampedMum(0, -100, 100),
         心里话: z.string().prefault(''),
         背景故事: z.string().prefault(''),
@@ -97,7 +97,7 @@ const partners = z
       .transform(data =>
         _.pick(data, [
           // 状态信息
-          '是否在场',
+          '在场',
           // 基础信息
           '种族',
           '身份',
@@ -117,7 +117,7 @@ const partners = z
           '技能',
           '登神长阶',
           // 关系信息
-          '是否缔结契约',
+          '命定契约',
           '好感度',
           // 故事信息
           '心里话',
@@ -172,7 +172,7 @@ export const Schema = z.object({
   命定系统: z
     .object({
       命运点数: minLimitedNum(0, 0),
-      命定之人: partners,
+      关系列表: partners,
     })
     .prefault({}),
   新闻: news.prefault({}),

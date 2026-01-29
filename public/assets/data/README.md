@@ -1,6 +1,6 @@
 # 数据录入指南
 
-本目录用于录入预设的装备、道具、技能、命定之人和初始剧情数据，使用 JSON5 格式（支持注释的 JSON），方便不懂代码的人员维护。
+本目录用于录入预设的装备、道具、技能、关系列表和初始剧情数据，使用 JSON5 格式（支持注释的 JSON），方便不懂代码的人员维护。
 
 文件会通过 CDN 加载，页面会自动带时间戳绕过缓存。
 
@@ -8,14 +8,14 @@
 
 ```
 public/assets/data/
-├── README.md          # 本说明文档
-├── baseInfo.json      # 基础信息数据（性别、种族、身份、初始地点）
-├── equipments.json    # 装备数据
-├── items.json         # 道具数据
-├── skills.json        # 技能数据
-├── destinedOnes.json  # 命定之人数据
-├── backgrounds.json   # 初始剧情数据
-└── coreClassification.json # 核心分类数据（排行榜/分组）
+├── README.md                # 本说明文档
+├── baseInfo.json            # 基础信息数据（性别、种族、身份、初始地点）
+├── equipments.json          # 装备数据
+├── items.json               # 道具数据
+├── skills.json              # 技能数据
+├── partners.json            # 关系列表数据
+├── backgrounds.json         # 初始剧情数据
+└── coreClassification.json  # 核心分类数据（排行榜/分组）
 ```
 
 ## JSON5 特性
@@ -50,7 +50,7 @@ public/assets/data/
 ## 快速开始
 
 1. 直接编辑数据文件
-   - 打开 `baseInfo.json`、`equipments.json`、`items.json`、`skills.json`、`destinedOnes.json`、`backgrounds.json`
+   - 打开 `baseInfo.json`、`equipments.json`、`items.json`、`skills.json`、`partners.json`、`backgrounds.json`
    - 按照格式添加或修改数据
    - 可以自由添加注释来说明数据用途
 
@@ -67,7 +67,7 @@ public/assets/data/
   - `equipments.json` - 装备数据
   - `items.json` - 道具数据
   - `skills.json` - 技能数据
-  - `destinedOnes.json` - 命定之人数据
+  - `partners.json` - 关系列表数据
   - `backgrounds.json` - 初始剧情数据
   - `coreClassification.json` - 核心分类数据（排行榜/分组）
 
@@ -211,24 +211,24 @@ skills.json 只有一种结构：最外层是“分类”，分类下是数组�
 }
 ```
 
-### 初始命定之人数据 (destinedOnes.json)
+### 初始关系列表数据 (partners.json)
 
 ```json5
 {
-  "第七层级": [  // 初始命定之人分类（默认以层级分类）
+  "第七层级": [  // 初始关系列表分类（默认以层级分类）
     {
-      "name": "索拉莉娅",  // 命定之人姓名
+      "name": "索拉莉娅",  // 伙伴姓名
       "cost": 9999,        // 转生点消耗
-      "lifeLevel": "第七层级/神祗",  // 命定之人的生命层级
-      "level": 25,                   // 命定之人的等级
-      "race": "神祗",                // 命定之人的种族
-      "identity": ["辉煌女神"],      // 命定之人的身份（数组）
-      "career": ["秩序守护者"],      // 命定之人的职业（数组）
-      "personality": "威严, 仁慈, 绝对的秩序与纯洁, 对黑暗毫不妥协",  // 命定之人的性格
-      "like": "秩序, 纯洁的灵魂, 翼民的虔诚",                         // 命定之人的喜好
-      "app": "金色长发，眼瞳宛如熔金。背后伸展着十二片覆盖天穹的纯白羽翼，耳后的头翅闪烁着神圣的光辉",  // 命定之人的外貌
-      "cloth": "身着一体式贴身金色神甲，线条优雅而神圣，手持一柄光芒构成的长枪与一本厚重的法典",        // 命定之人的衣物装饰
-      "equip": [  // 命定之人的装备(格式参考装备数据，但没有 cost 字段)
+      "lifeLevel": "第七层级/神祗",  // 伙伴的生命层级
+      "level": 25,                   // 伙伴的等级
+      "race": "神祗",                // 伙伴的种族
+      "identity": ["辉煌女神"],      // 伙伴的身份（数组）
+      "career": ["秩序守护者"],      // 伙伴的职业（数组）
+      "personality": "威严, 仁慈, 绝对的秩序与纯洁, 对黑暗毫不妥协",  // 伙伴的性格
+      "like": "秩序, 纯洁的灵魂, 翼民的虔诚",                         // 伙伴的喜好
+      "app": "金色长发，眼瞳宛如熔金。背后伸展着十二片覆盖天穹的纯白羽翼，耳后的头翅闪烁着神圣的光辉",  // 伙伴的外貌
+      "cloth": "身着一体式贴身金色神甲，线条优雅而神圣，手持一柄光芒构成的长枪与一本厚重的法典",        // 伙伴的衣物装饰
+      "equip": [  // 伙伴的装备(格式参考装备数据，但没有 cost 字段)
         {
           "name": "黎明圣裁",
           "type": "武器",
@@ -241,14 +241,14 @@ skills.json 只有一种结构：最外层是“分类”，分类下是数组�
         },
         // 更多装备...
       ],
-      "attributes": {  // 命定之人的属性
+      "attributes": {  // 伙伴的属性
         "strength": 17,
         "dexterity": 11,
         "constitution": 17,
         "intelligence": 20,
         "mind": 21
       },
-      "stairway": {  // 命定之人的登神长阶
+      "stairway": {  // 伙伴的登神长阶
         "isOpen": true,  // 是否开启登神长阶 (true/false)
         "elements": {  // 登神长阶的要素（嵌套键值对格式：{ "要素名": { "效果名": "效果描述" } }）
           "光明": {
@@ -277,11 +277,11 @@ skills.json 只有一种结构：最外层是“分类”，分类下是数组�
           "description": "以辉煌女神的神力开辟的专属次位面。一个由纯粹的光与秩序构成的世界，没有黑夜与混乱。在神国内，索拉莉娅全知全能，可以随意修改物理与魔法规则"
         }
       },
-      "isContract": true,  // 命定之人是否与<user>缔结契约 (true/false)
-      "affinity": 50,        // 命定之人的好感度
-      "comment": "${对<user>的评价}",  // 命定之人对<user>的评价
-      "backgroundInfo": "（命定之人的背景故事）",
-      "skills": [  // 命定之人的技能（参考技能数据，但没有 cost 字段）
+      "isContract": true,  // 伙伴是否与<user>缔结契约 (true/false)
+      "affinity": 50,        // 伙伴的好感度
+      "comment": "${对<user>的评价}",  // 伙伴对<user>的评价
+      "backgroundInfo": "（伙伴的背景故事）",
+      "skills": [  // 伙伴的技能（参考技能数据，但没有 cost 字段）
         {
           "name": "圣枪・天穹穿刺",
           "rarity": "mythic",

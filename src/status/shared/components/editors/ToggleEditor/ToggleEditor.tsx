@@ -20,7 +20,7 @@ export interface ToggleEditorProps {
 
 /**
  * 布尔开关编辑器
- * 支持左右状态文字提示，适合"是否在场"、"是否契约"等场景
+ * 支持左右状态文字提示，适合"在场"、"命定契约"等场景
  */
 export const ToggleEditor: FC<ToggleEditorProps> = ({
   value,

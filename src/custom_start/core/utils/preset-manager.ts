@@ -1,5 +1,5 @@
 import { klona } from 'klona';
-import type { Background, CharacterConfig, DestinedOne, Equipment, Item, Skill } from '../types';
+import type { Background, CharacterConfig, Equipment, Item, Partner, Skill } from '../types';
 
 /**
  * 预设数据结构
@@ -19,8 +19,8 @@ export interface CharacterPreset {
   items: Item[];
   /** 选择的技能列表 */
   skills: Skill[];
-  /** 选择的命定之人列表 */
-  destinedOnes: DestinedOne[];
+  /** 选择的伙伴列表 */
+  partners: Partner[];
   /** 选择的背景 */
   background: Background | null;
 }
@@ -197,7 +197,7 @@ export function createPresetFromStore(
     selectedEquipments: Equipment[];
     selectedItems: Item[];
     selectedSkills: Skill[];
-    selectedDestinedOnes: DestinedOne[];
+    selectedPartners: Partner[];
     selectedBackground: Background | null;
   },
 ): CharacterPreset {
@@ -211,7 +211,7 @@ export function createPresetFromStore(
     equipments: klona(characterStore.selectedEquipments),
     items: klona(characterStore.selectedItems),
     skills: klona(characterStore.selectedSkills),
-    destinedOnes: klona(characterStore.selectedDestinedOnes),
+    partners: klona(characterStore.selectedPartners),
     background: klona(characterStore.selectedBackground),
   };
 }
@@ -251,11 +251,11 @@ export function applyPresetToStore(
     addEquipment: (equipment: Equipment) => void;
     addItem: (item: Item) => void;
     addSkill: (skill: Skill) => void;
-    addDestinedOne: (destinedOne: DestinedOne) => void;
+    addPartner: (partner: Partner) => void;
     setBackground: (background: Background | null) => void;
   },
 ): void {
-  // 1. 重置角色数据和所有选择（包括命定之人和背景）
+  // 1. 重置角色数据和所有选择（包括伙伴和背景）
   characterStore.resetCharacter();
   characterStore.clearAllSelections();
 
@@ -269,11 +269,11 @@ export function applyPresetToStore(
     }
   });
 
-  // 3. 应用装备、道具、技能、命定之人
+  // 3. 应用装备、道具、技能、伙伴
   _.forEach(preset.equipments, eq => characterStore.addEquipment(eq));
   _.forEach(preset.items, item => characterStore.addItem(item));
   _.forEach(preset.skills, skill => characterStore.addSkill(skill));
-  _.forEach(preset.destinedOnes, one => characterStore.addDestinedOne(one));
+  _.forEach(preset.partners, partner => characterStore.addPartner(partner));
 
   // 4. 应用背景
   characterStore.setBackground(preset.background);
@@ -312,7 +312,7 @@ export function isStoreMatchingPreset(
     selectedEquipments: Equipment[];
     selectedItems: Item[];
     selectedSkills: Skill[];
-    selectedDestinedOnes: DestinedOne[];
+    selectedPartners: Partner[];
     selectedBackground: Background | null;
   },
 ): boolean {
@@ -326,7 +326,7 @@ export function isStoreMatchingPreset(
     _.isEqual(characterStore.selectedEquipments, preset.equipments),
     _.isEqual(characterStore.selectedItems, preset.items),
     _.isEqual(characterStore.selectedSkills, preset.skills),
-    _.isEqual(characterStore.selectedDestinedOnes, preset.destinedOnes),
+    _.isEqual(characterStore.selectedPartners, preset.partners),
     _.isEqual(characterStore.selectedBackground, preset.background),
   ]);
 }
@@ -342,7 +342,7 @@ export function findMatchingPreset(characterStore: {
   selectedEquipments: Equipment[];
   selectedItems: Item[];
   selectedSkills: Skill[];
-  selectedDestinedOnes: DestinedOne[];
+  selectedPartners: Partner[];
   selectedBackground: Background | null;
 }): string | null {
   const presets = listPresets();

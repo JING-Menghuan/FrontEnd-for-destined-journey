@@ -25,8 +25,8 @@ export type Skill = Omit<Item, 'quantity'> & {
   isCustom?: boolean; // 标识是否为自定义数据
 };
 
-// 命定之人类型
-export interface DestinedOne {
+// 伙伴类型
+export interface Partner {
   name: string;
   cost: number;
   lifeLevel: string;

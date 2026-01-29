@@ -74,10 +74,10 @@ export const useCustomContentStore = defineStore('customContent', () => {
   };
 
   /**
-   * 自定义命定之人表单数据
+   * 自定义伙伴表单数据
    * 使用专业级数据结构：数组用于多值字段，对象用于复杂结构
    */
-  const customDestinedOneForm = ref({
+  const customPartnerForm = ref({
     itemName: '',
     itemLevel: 1,
     itemLifeLevel: '',
@@ -102,21 +102,18 @@ export const useCustomContentStore = defineStore('customContent', () => {
   });
 
   /**
-   * 更新自定义命定之人表单
+   * 更新自定义伙伴表单
    */
-  const updateCustomDestinedOneForm = (
-    field: keyof typeof customDestinedOneForm.value,
-    value: any,
-  ) => {
-    customDestinedOneForm.value[field] = value as never;
+  const updateCustomPartnerForm = (field: keyof typeof customPartnerForm.value, value: any) => {
+    customPartnerForm.value[field] = value as never;
   };
 
   /**
-   * 重置自定义命定之人表单
+   * 重置自定义伙伴表单
    * 使用 klona 确保深拷贝安全
    */
-  const resetCustomDestinedOneForm = () => {
-    customDestinedOneForm.value = {
+  const resetCustomPartnerForm = () => {
+    customPartnerForm.value = {
       itemName: '',
       itemLevel: 1,
       itemLifeLevel: '',
@@ -145,7 +142,7 @@ export const useCustomContentStore = defineStore('customContent', () => {
   const resetAll = () => {
     customBackgroundDescription.value = '';
     resetCustomItemForm();
-    resetCustomDestinedOneForm();
+    resetCustomPartnerForm();
   };
 
   return {
@@ -158,10 +155,10 @@ export const useCustomContentStore = defineStore('customContent', () => {
     updateCustomItemForm,
     resetCustomItemForm,
 
-    // 自定义命定之人表单
-    customDestinedOneForm,
-    updateCustomDestinedOneForm,
-    resetCustomDestinedOneForm,
+    // 自定义伙伴表单
+    customPartnerForm,
+    updateCustomPartnerForm,
+    resetCustomPartnerForm,
 
     // 全局重置
     resetAll,

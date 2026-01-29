@@ -19,7 +19,7 @@ export interface StepMeta {
 export const STEP_CONFIGS: StepMeta[] = [
   { title: '基础信息与属性', shortTitle: '信息/属性', step: 1 },
   { title: '装备与技能', shortTitle: '装备/技能', step: 2 },
-  { title: '命定之人与初始背景', shortTitle: '对象/背景', step: 3 },
+  { title: '伙伴与初始背景', shortTitle: '伙伴/背景', step: 3 },
   { title: '确认提交', shortTitle: '确认', step: 4 },
 ];
 

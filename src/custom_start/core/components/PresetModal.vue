@@ -214,7 +214,7 @@ const showSaveSection = computed(() => {
                       ><i class="fa-solid fa-wand-sparkles"></i> {{ preset.skills.length }}</span
                     >
                     <span class="meta-item"
-                      ><i class="fa-solid fa-heart"></i> {{ preset.destinedOnes.length }}</span
+                      ><i class="fa-solid fa-heart"></i> {{ preset.partners.length }}</span
                     >
                   </div>
                 </div>

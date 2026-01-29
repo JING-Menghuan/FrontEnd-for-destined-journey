@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useCharacterStore, useCustomContentStore } from '../../store';
-import type { DestinedOne } from '../../types';
+import type { Partner } from '../../types';
 
 const characterStore = useCharacterStore();
 const customContentStore = useCustomContentStore();
@@ -60,8 +60,8 @@ const formatStairwayMap = (map?: Record<string, Record<string, string>>) => {
   }));
 };
 
-const getStairwayView = (one: DestinedOne) => {
-  const stairway = one.stairway;
+const getStairwayView = (partner: Partner) => {
+  const stairway = partner.stairway;
   if (!stairway?.isOpen) {
     return {
       isOpen: false,
@@ -78,7 +78,7 @@ const getStairwayView = (one: DestinedOne) => {
   const elements = formatStairwayMap(stairway.elements);
   const powers = formatStairwayMap(stairway.powers);
   const laws = formatStairwayMap(stairway.laws);
-  const isSimple = one.isCustom;
+  const isSimple = partner.isCustom;
 
   return {
     isOpen: true,
@@ -277,37 +277,37 @@ const getStairwayView = (one: DestinedOne) => {
           <p v-else class="empty-text">未选择技能</p>
         </section>
 
-        <!-- 命定之人 -->
+        <!-- 伙伴列表 -->
         <section class="doc-section">
           <h3 class="section-title">
             <i class="fa-solid fa-user-astronaut" aria-hidden="true"></i>
-            <span>命定之人 ({{ characterStore.selectedDestinedOnes.length }})</span>
+            <span>伙伴列表 ({{ characterStore.selectedPartners.length }})</span>
           </h3>
-          <div v-if="characterStore.selectedDestinedOnes.length > 0" class="doc-text">
+          <div v-if="characterStore.selectedPartners.length > 0" class="doc-text">
             <div
-              v-for="(one, index) in characterStore.selectedDestinedOnes"
-              :key="one.name"
+              v-for="(partner, index) in characterStore.selectedPartners"
+              :key="partner.name"
               class="destined-entry"
             >
               <p class="item-title">
-                <strong>{{ index + 1 }}. {{ one.name }}</strong>
-                <span class="item-cost">[{{ one.cost }} 点]</span>
+                <strong>{{ index + 1 }}. {{ partner.name }}</strong>
+                <span class="item-cost">[{{ partner.cost }} 点]</span>
               </p>
               <p class="item-meta">
-                {{ one.race }} | {{ one.identity.join('、') }} | Lv.{{ one.level }} |
-                {{ one.lifeLevel }}
+                {{ partner.race }} | {{ partner.identity.join('、') }} | Lv.{{ partner.level }} |
+                {{ partner.lifeLevel }}
               </p>
-              <p v-if="one.backgroundInfo">{{ one.backgroundInfo }}</p>
-              <div v-if="getStairwayView(one).isOpen" class="sub-list">
+              <p v-if="partner.backgroundInfo">{{ partner.backgroundInfo }}</p>
+              <div v-if="getStairwayView(partner).isOpen" class="sub-list">
                 <p><strong>登神长阶：</strong></p>
-                <p v-if="getStairwayView(one).isSimple" class="sub-item">
-                  • {{ getStairwayView(one).text }}
+                <p v-if="getStairwayView(partner).isSimple" class="sub-item">
+                  • {{ getStairwayView(partner).text }}
                 </p>
                 <template v-else>
-                  <div v-if="getStairwayView(one).elements.length > 0" class="sub-item">
+                  <div v-if="getStairwayView(partner).elements.length > 0" class="sub-item">
                     <p><strong>要素：</strong></p>
                     <div
-                      v-for="element in getStairwayView(one).elements"
+                      v-for="element in getStairwayView(partner).elements"
                       :key="`element-${element.name}`"
                       class="sub-item"
                     >
@@ -321,10 +321,10 @@ const getStairwayView = (one: DestinedOne) => {
                       </p>
                     </div>
                   </div>
-                  <div v-if="getStairwayView(one).powers.length > 0" class="sub-item">
+                  <div v-if="getStairwayView(partner).powers.length > 0" class="sub-item">
                     <p><strong>权能：</strong></p>
                     <div
-                      v-for="power in getStairwayView(one).powers"
+                      v-for="power in getStairwayView(partner).powers"
                       :key="`power-${power.name}`"
                       class="sub-item"
                     >
@@ -338,10 +338,10 @@ const getStairwayView = (one: DestinedOne) => {
                       </p>
                     </div>
                   </div>
-                  <div v-if="getStairwayView(one).laws.length > 0" class="sub-item">
+                  <div v-if="getStairwayView(partner).laws.length > 0" class="sub-item">
                     <p><strong>法则：</strong></p>
                     <div
-                      v-for="law in getStairwayView(one).laws"
+                      v-for="law in getStairwayView(partner).laws"
                       :key="`law-${law.name}`"
                       class="sub-item"
                     >
@@ -355,42 +355,44 @@ const getStairwayView = (one: DestinedOne) => {
                       </p>
                     </div>
                   </div>
-                  <p v-if="getStairwayView(one).godlyRank" class="sub-item">
-                    • 神位：{{ getStairwayView(one).godlyRank }}
+                  <p v-if="getStairwayView(partner).godlyRank" class="sub-item">
+                    • 神位：{{ getStairwayView(partner).godlyRank }}
                   </p>
                   <div
                     v-if="
-                      getStairwayView(one).godKingdom?.name ||
-                      getStairwayView(one).godKingdom?.description
+                      getStairwayView(partner).godKingdom?.name ||
+                      getStairwayView(partner).godKingdom?.description
                     "
                     class="sub-item"
                   >
                     <p><strong>神国：</strong></p>
-                    <p v-if="getStairwayView(one).godKingdom?.name" class="sub-item">
-                      • 名称：{{ getStairwayView(one).godKingdom?.name }}
+                    <p v-if="getStairwayView(partner).godKingdom?.name" class="sub-item">
+                      • 名称：{{ getStairwayView(partner).godKingdom?.name }}
                     </p>
-                    <p v-if="getStairwayView(one).godKingdom?.description" class="sub-item">
-                      • 描述：{{ getStairwayView(one).godKingdom?.description }}
+                    <p v-if="getStairwayView(partner).godKingdom?.description" class="sub-item">
+                      • 描述：{{ getStairwayView(partner).godKingdom?.description }}
                     </p>
                   </div>
                 </template>
               </div>
-              <p v-if="one.comment" class="item-flavor">{{ one.comment }}</p>
+              <p v-if="partner.comment" class="item-flavor">{{ partner.comment }}</p>
 
-              <div v-if="one.equip && one.equip.length > 0" class="sub-list">
+              <div v-if="partner.equip && partner.equip.length > 0" class="sub-list">
                 <p><strong>装备：</strong></p>
-                <p v-for="(eq, idx) in one.equip" :key="idx" class="sub-item">
+                <p v-for="(eq, idx) in partner.equip" :key="idx" class="sub-item">
                   • {{ eq.name || eq }}
                 </p>
               </div>
 
-              <div v-if="one.skills && one.skills.length > 0" class="sub-list">
+              <div v-if="partner.skills && partner.skills.length > 0" class="sub-list">
                 <p><strong>技能：</strong></p>
-                <p v-for="(sk, idx) in one.skills" :key="idx" class="sub-item">• {{ sk.name }}</p>
+                <p v-for="(sk, idx) in partner.skills" :key="idx" class="sub-item">
+                  • {{ sk.name }}
+                </p>
               </div>
             </div>
           </div>
-          <p v-else class="empty-text">未选择命定之人</p>
+          <p v-else class="empty-text">未选择伙伴</p>
         </section>
 
         <!-- 初始开局 -->

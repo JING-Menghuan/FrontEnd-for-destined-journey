@@ -5,7 +5,7 @@ import { useMvuDataStore } from '../stores';
  * 删除目标类型
  */
 export interface DeleteTarget {
-  /** 删除类型（如：状态效果、命定之人、装备等） */
+  /** 删除类型（如：状态效果、伙伴、装备等） */
   type: string;
   /** 数据路径 */
   path: string;

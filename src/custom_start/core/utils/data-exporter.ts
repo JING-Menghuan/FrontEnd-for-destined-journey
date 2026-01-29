@@ -1,6 +1,6 @@
 import { BASE_STAT, getLevelTierName, getTierAttributeBonus } from '../data/base-info';
 import { RARITY_MAP } from '../data/constants';
-import type { Background, CharacterConfig, DestinedOne, Equipment, Item, Skill } from '../types';
+import type { Background, CharacterConfig, Equipment, Item, Partner, Skill } from '../types';
 
 /**
  * 将角色数据写入到 MVU 变量中
@@ -10,13 +10,13 @@ export async function writeCharacterToMvu(
   character: CharacterConfig,
   items: Item[],
   skills: Skill[],
-  destinedOnes: DestinedOne[],
+  partners: Partner[],
 ): Promise<void> {
   await waitGlobalInitialized('Mvu');
 
   const presetSkills = _.filter(skills, skill => !skill.isCustom);
   const presetItems = _.filter(items, item => !item.isCustom);
-  const presetDestinedOnes = _.filter(destinedOnes, one => !one.isCustom);
+  const presetPartners = _.filter(partners, partner => !partner.isCustom);
 
   const mvuData = Mvu.getMvuData({ type: 'message', message_id: 'latest' });
 
@@ -57,12 +57,12 @@ export async function writeCharacterToMvu(
   _.set(mvuData, 'stat_data.主角.金钱', Math.max(0, Math.round(character.money)));
   _.set(mvuData, 'stat_data.主角.等级', character.level);
 
-  // 命定之人
-  const destinedOnesData = _.fromPairs(
-    _.map(presetDestinedOnes, one => {
+  // 关系列表
+  const relationData = _.fromPairs(
+    _.map(presetPartners, partner => {
       // 装备数据：过滤有 name 的装备，转为以 name 为键的对象
       const equipData = _.fromPairs(
-        _.chain(one.equip)
+        _.chain(partner.equip)
           .filter(eq => !!eq.name)
           .map(eq => [
             eq.name,
@@ -80,7 +80,7 @@ export async function writeCharacterToMvu(
 
       // 技能数据
       const skillData = _.fromPairs(
-        _.map(one.skills, skill => [
+        _.map(partner.skills, skill => [
           skill.name,
           {
             品质: _.get(RARITY_MAP, skill.rarity, '普通'),
@@ -94,47 +94,50 @@ export async function writeCharacterToMvu(
       );
 
       return [
-        one.name,
+        partner.name,
         {
-          // 新 schema: 命定之人字段
-          是否在场: true,
-          生命层级: one.lifeLevel,
-          等级: one.level,
-          种族: one.race,
-          身份: [...one.identity],
-          职业: [...one.career],
-          性格: one.personality,
-          喜爱: one.like,
-          外貌: one.app,
-          着装: one.cloth,
+          // 新 schema: 关系列表字段
+          在场: true,
+          生命层级: partner.lifeLevel,
+          等级: partner.level,
+          种族: partner.race,
+          身份: [...partner.identity],
+          职业: [...partner.career],
+          性格: partner.personality,
+          喜爱: partner.like,
+          外貌: partner.app,
+          着装: partner.cloth,
           属性: {
-            力量: one.attributes.strength,
-            敏捷: one.attributes.dexterity,
-            体质: one.attributes.constitution,
-            智力: one.attributes.intelligence,
-            精神: one.attributes.mind,
+            力量: partner.attributes.strength,
+            敏捷: partner.attributes.dexterity,
+            体质: partner.attributes.constitution,
+            智力: partner.attributes.intelligence,
+            精神: partner.attributes.mind,
           },
           登神长阶: {
-            是否开启: one.stairway.isOpen,
-            要素: one.stairway.elements ?? {},
-            权能: one.stairway.powers ?? {},
-            法则: one.stairway.laws ?? {},
-            神位: one.stairway.godlyRank ?? '',
-            神国: one.stairway.godKingdom
-              ? { 名称: one.stairway.godKingdom.name, 描述: one.stairway.godKingdom.description }
+            是否开启: partner.stairway.isOpen,
+            要素: partner.stairway.elements ?? {},
+            权能: partner.stairway.powers ?? {},
+            法则: partner.stairway.laws ?? {},
+            神位: partner.stairway.godlyRank ?? '',
+            神国: partner.stairway.godKingdom
+              ? {
+                  名称: partner.stairway.godKingdom.name,
+                  描述: partner.stairway.godKingdom.description,
+                }
               : { 名称: '', 描述: '' },
           },
-          是否缔结契约: one.isContract,
-          好感度: one.affinity,
-          心里话: one.comment || '',
-          背景故事: one.backgroundInfo || '',
+          命定契约: partner.isContract,
+          好感度: partner.affinity,
+          心里话: partner.comment || '',
+          背景故事: partner.backgroundInfo || '',
           装备: equipData,
           技能: skillData,
         },
       ];
     }),
   );
-  _.set(mvuData, 'stat_data.命定系统.命定之人', destinedOnesData);
+  _.set(mvuData, 'stat_data.命定系统.关系列表', relationData);
 
   // 将更新后的数据写回
   await Mvu.replaceMvuData(mvuData, { type: 'message', message_id: 'latest' });
@@ -147,7 +150,7 @@ export async function writeCharacterToMvu(
 export function generateAIPrompt(
   character: CharacterConfig,
   equipments: Equipment[],
-  destinedOnes: DestinedOne[],
+  partners: Partner[],
   background: Background | null,
   items: Item[],
   skills: Skill[],
@@ -252,32 +255,32 @@ export function generateAIPrompt(
     });
   }
 
-  // 命定之人
-  const customOnes = _.filter(destinedOnes, 'isCustom');
-  if (customOnes.length > 0) {
+  // 关系列表
+  const customPartners = _.filter(partners, 'isCustom');
+  if (customPartners.length > 0) {
     lines.push('');
-    lines.push('【命定之人】');
-    customOnes.forEach(one => {
-      lines.push(`◆ 名称: ${one.name}`);
-      lines.push(`  种族: ${one.race}`);
-      lines.push(`  身份: ${one.identity.join('、')}`);
-      if (one.career.length > 0) lines.push(`  职业: ${one.career.join('、')}`);
-      lines.push(`  生命层级: ${one.lifeLevel}`);
-      lines.push(`  等级: ${one.level}`);
-      lines.push(`  性格: ${one.personality}`);
-      lines.push(`  喜爱: ${one.like}`);
-      lines.push(`  外貌: ${one.app}`);
-      lines.push(`  着装: ${one.cloth}`);
+    lines.push('【关系列表】');
+    customPartners.forEach(partner => {
+      lines.push(`◆ 名称: ${partner.name}`);
+      lines.push(`  种族: ${partner.race}`);
+      lines.push(`  身份: ${partner.identity.join('、')}`);
+      if (partner.career.length > 0) lines.push(`  职业: ${partner.career.join('、')}`);
+      lines.push(`  生命层级: ${partner.lifeLevel}`);
+      lines.push(`  等级: ${partner.level}`);
+      lines.push(`  性格: ${partner.personality}`);
+      lines.push(`  喜爱: ${partner.like}`);
+      lines.push(`  外貌: ${partner.app}`);
+      lines.push(`  着装: ${partner.cloth}`);
       lines.push(`  属性:`);
-      lines.push(`    力量: ${one.attributes.strength}`);
-      lines.push(`    敏捷: ${one.attributes.dexterity}`);
-      lines.push(`    体质: ${one.attributes.constitution}`);
-      lines.push(`    智力: ${one.attributes.intelligence}`);
-      lines.push(`    精神: ${one.attributes.mind}`);
-      lines.push(`  是否缔结契约: ${one.isContract ? '是' : '否'}`);
-      lines.push(`  好感度: ${one.affinity}`);
-      if (!_.isEmpty(one.equip)) {
-        const validEquips = _.filter(one.equip, 'name');
+      lines.push(`    力量: ${partner.attributes.strength}`);
+      lines.push(`    敏捷: ${partner.attributes.dexterity}`);
+      lines.push(`    体质: ${partner.attributes.constitution}`);
+      lines.push(`    智力: ${partner.attributes.intelligence}`);
+      lines.push(`    精神: ${partner.attributes.mind}`);
+      lines.push(`  命定契约: ${partner.isContract}`);
+      lines.push(`  好感度: ${partner.affinity}`);
+      if (!_.isEmpty(partner.equip)) {
+        const validEquips = _.filter(partner.equip, 'name');
         if (validEquips.length > 0) {
           lines.push(`  装备:`);
           validEquips.forEach((eq, eqIndex) => {
@@ -297,22 +300,22 @@ export function generateAIPrompt(
           });
         }
       }
-      if (one.stairway.isOpen) {
+      if (partner.stairway.isOpen) {
         lines.push(`  登神长阶: 已开启`);
         const stairwayDesc =
-          _.get(one.stairway, 'elements.custom.desc') ||
-          _.chain(one.stairway.elements)
+          _.get(partner.stairway, 'elements.custom.desc') ||
+          _.chain(partner.stairway.elements)
             .values()
             .map(value => value?.desc || '')
             .find(Boolean)
             .value();
         if (stairwayDesc) lines.push(`    描述: ${stairwayDesc}`);
       }
-      if (one.comment) lines.push(`  心里话: ${one.comment}`);
-      if (one.backgroundInfo) lines.push(`  背景: ${one.backgroundInfo}`);
-      if (one.skills.length > 0) {
+      if (partner.comment) lines.push(`  心里话: ${partner.comment}`);
+      if (partner.backgroundInfo) lines.push(`  背景: ${partner.backgroundInfo}`);
+      if (partner.skills.length > 0) {
         lines.push(`  技能:`);
-        one.skills.forEach((sk, skIndex) => {
+        partner.skills.forEach((sk, skIndex) => {
           lines.push(`    - 名称: ${sk.name}`);
           if (sk.type) lines.push(`      类型: ${sk.type}`);
           if (sk.rarity) lines.push(`      品质: ${RARITY_MAP[sk.rarity] || sk.rarity}`);
@@ -326,7 +329,7 @@ export function generateAIPrompt(
           }
           if (sk.description) lines.push(`      描述: ${sk.description}`);
           // 在技能之间添加空行（末尾不加）
-          if (skIndex < one.skills.length - 1) lines.push('');
+          if (skIndex < partner.skills.length - 1) lines.push('');
         });
       }
     });

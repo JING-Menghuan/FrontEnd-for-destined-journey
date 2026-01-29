@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { parseMacroDeep, useExpandableCards, useSelectableList } from '../../../composables';
 import { useCharacterStore } from '../../../store/character';
-import type { DestinedOne } from '../../../types';
+import type { Partner } from '../../../types';
 
 interface Props {
-  items: DestinedOne[];
+  items: Partner[];
 }
 
 interface Emits {
-  (e: 'select', item: DestinedOne): void;
-  (e: 'deselect', item: DestinedOne): void;
+  (e: 'select', item: Partner): void;
+  (e: 'deselect', item: Partner): void;
 }
 
 const props = defineProps<Props>();
@@ -23,7 +23,7 @@ const availablePoints = computed(() => {
 
 // 使用通用可选列表逻辑
 const { isSelected, canSelect } = useSelectableList(
-  () => characterStore.selectedDestinedOnes,
+  () => characterStore.selectedPartners,
   () => availablePoints.value,
 );
 
@@ -31,7 +31,7 @@ const { isSelected, canSelect } = useSelectableList(
 const { toggleExpand, isExpanded } = useExpandableCards();
 
 // 处理选择
-const handleToggle = (item: DestinedOne) => {
+const handleToggle = (item: Partner) => {
   if (isSelected(item)) {
     emit('deselect', item);
   } else if (canSelect(item)) {
@@ -39,10 +39,10 @@ const handleToggle = (item: DestinedOne) => {
   }
 };
 
-// 解析后的命定之人数据
-const parsedItems = ref<DestinedOne[]>([]);
+// 解析后的伙伴数据
+const parsedItems = ref<Partner[]>([]);
 
-// 解析所有命定之人
+// 解析所有伙伴
 watch(
   () => props.items,
   async items => {
@@ -54,7 +54,7 @@ watch(
 
 <template>
   <div class="destined-one-list">
-    <div v-if="parsedItems.length === 0" class="empty-message">该分类暂无命定之人</div>
+    <div v-if="parsedItems.length === 0" class="empty-message">该分类暂无伙伴</div>
     <div
       v-for="item in parsedItems"
       :key="item.name"
@@ -112,7 +112,7 @@ watch(
             <span class="value">{{ item.personality }}</span>
           </div>
           <div class="info-row">
-            <span class="label">是否缔结契约：</span>
+            <span class="label">命定契约：</span>
             <span class="value">{{ item.isContract ? '是' : '否' }}</span>
           </div>
         </div>

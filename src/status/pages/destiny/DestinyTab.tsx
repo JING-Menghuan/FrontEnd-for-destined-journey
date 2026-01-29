@@ -26,7 +26,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const { deleteTarget, setDeleteTarget, handleDelete, cancelDelete, isConfirmOpen } =
     useDeleteConfirm();
   const destinySystem = data.命定系统;
-  const partners = destinySystem?.命定之人;
+  const partners = destinySystem?.关系列表;
 
   /**
    * 处理 FP 商店按钮点击
@@ -152,11 +152,11 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
               data={item}
               titleSuffix={getTitleSuffix(item)}
               editEnabled={editEnabled}
-              pathPrefix={`命定系统.命定之人.${partnerName}.${itemType}.${name}`}
+              pathPrefix={`命定系统.关系列表.${partnerName}.${itemType}.${name}`}
               onDelete={() =>
                 setDeleteTarget({
                   type: itemType,
-                  path: `命定系统.命定之人.${partnerName}.${itemType}.${name}`,
+                  path: `命定系统.关系列表.${partnerName}.${itemType}.${name}`,
                   name,
                 })
               }
@@ -168,10 +168,10 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
     );
   };
 
-  /** 渲染命定之人列表 */
+  /** 渲染关系列表 */
   const renderPartners = () => {
     if (_.isEmpty(partners)) {
-      return <EmptyHint className={styles.emptyHint} text="暂无命定之人" />;
+      return <EmptyHint className={styles.emptyHint} text="暂无伙伴" />;
     }
 
     return (
@@ -185,11 +185,11 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <div className={styles.partnerMeta}>
                   <span className={styles.affectionBadge}>好感度 {partner.好感度 ?? 0}</span>
                   <div className={styles.partnerTags}>
-                    {partner.是否在场 && (
+                    {partner.在场 && (
                       <span className={`${styles.tag} ${styles.tagPresent}`}>在场</span>
                     )}
-                    {partner.是否缔结契约 && (
-                      <span className={`${styles.tag} ${styles.tagContract}`}>契约</span>
+                    {partner.命定契约 && (
+                      <span className={`${styles.tag} ${styles.tagContract}`}>命定契约</span>
                     )}
                   </div>
                 </div>
@@ -199,12 +199,12 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                     onClick={e => {
                       e.stopPropagation();
                       setDeleteTarget({
-                        type: '命定之人',
-                        path: `命定系统.命定之人.${name}`,
+                        type: '伙伴',
+                        path: `命定系统.关系列表.${name}`,
                         name,
                       });
                     }}
-                    title="删除命定之人"
+                    title="删除关系"
                   >
                     <i className="fa-solid fa-trash" />
                   </button>
@@ -218,7 +218,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <span className={styles.label}>好感度</span>
                 {editEnabled ? (
                   <EditableField
-                    path={`命定系统.命定之人.${name}.好感度`}
+                    path={`命定系统.关系列表.${name}.好感度`}
                     value={partner.好感度 ?? 0}
                     type="number"
                     numberConfig={{ min: -100, max: 100, step: 1 }}
@@ -228,23 +228,23 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 )}
               </div>
 
-              {/* 状态标签（是否在场、是否缔结契约）- 编辑模式显示开关 */}
+              {/* 状态标签（在场、命定契约）- 编辑模式显示开关 */}
               {editEnabled && (
                 <div className={styles.partnerStatusToggles}>
                   <div className={styles.toggleRow}>
                     <span className={styles.toggleLabel}>在场状态</span>
                     <EditableField
-                      path={`命定系统.命定之人.${name}.是否在场`}
-                      value={partner.是否在场 ?? false}
+                      path={`命定系统.关系列表.${name}.在场`}
+                      value={partner.在场 ?? false}
                       type="toggle"
                       toggleConfig={{ labelOff: '离场', labelOn: '在场', size: 'sm' }}
                     />
                   </div>
                   <div className={styles.toggleRow}>
-                    <span className={styles.toggleLabel}>契约状态</span>
+                    <span className={styles.toggleLabel}>命定契约</span>
                     <EditableField
-                      path={`命定系统.命定之人.${name}.是否缔结契约`}
-                      value={partner.是否缔结契约 ?? false}
+                      path={`命定系统.关系列表.${name}.命定契约`}
+                      value={partner.命定契约 ?? false}
                       type="toggle"
                       toggleConfig={{ labelOff: '未缔结', labelOn: '已缔结', size: 'sm' }}
                     />
@@ -256,7 +256,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
               <div className={styles.partnerInfo}>
                 {renderEditableRow(
                   '种族',
-                  `命定系统.命定之人.${name}.种族`,
+                  `命定系统.关系列表.${name}.种族`,
                   partner.种族,
                   'text',
                   styles.infoRow,
@@ -265,7 +265,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 )}
                 {renderEditableRow(
                   '身份',
-                  `命定系统.命定之人.${name}.身份`,
+                  `命定系统.关系列表.${name}.身份`,
                   partner.身份,
                   'tags',
                   styles.infoRow,
@@ -274,7 +274,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 )}
                 {renderEditableRow(
                   '职业',
-                  `命定系统.命定之人.${name}.职业`,
+                  `命定系统.关系列表.${name}.职业`,
                   partner.职业,
                   'tags',
                   styles.infoRow,
@@ -302,7 +302,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <div className={styles.partnerAppearance}>
                   {renderEditableRow(
                     '外貌',
-                    `命定系统.命定之人.${name}.外貌`,
+                    `命定系统.关系列表.${name}.外貌`,
                     partner.外貌,
                     'textarea',
                     styles.appearanceRow,
@@ -311,7 +311,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                   )}
                   {renderEditableRow(
                     '着装',
-                    `命定系统.命定之人.${name}.着装`,
+                    `命定系统.关系列表.${name}.着装`,
                     partner.着装,
                     'textarea',
                     styles.appearanceRow,
@@ -326,7 +326,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <div className={styles.partnerTraits}>
                   {renderEditableRow(
                     '性格',
-                    `命定系统.命定之人.${name}.性格`,
+                    `命定系统.关系列表.${name}.性格`,
                     partner.性格,
                     'textarea',
                     styles.traitRow,
@@ -335,7 +335,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                   )}
                   {renderEditableRow(
                     '喜爱',
-                    `命定系统.命定之人.${name}.喜爱`,
+                    `命定系统.关系列表.${name}.喜爱`,
                     partner.喜爱,
                     'textarea',
                     styles.traitRow,
@@ -360,7 +360,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                         <span className={styles.attributeKey}>{key}</span>
                         {editEnabled ? (
                           <EditableField
-                            path={`命定系统.命定之人.${name}.属性.${key}`}
+                            path={`命定系统.关系列表.${name}.属性.${key}`}
                             value={value ?? 0}
                             type="number"
                             numberConfig={{ min: 0, max: 20, step: 1 }}
@@ -398,7 +398,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <div className={styles.partnerThoughts}>
                   {renderEditableRow(
                     '心里话',
-                    `命定系统.命定之人.${name}.心里话`,
+                    `命定系统.关系列表.${name}.心里话`,
                     partner.心里话,
                     'textarea',
                     styles.thoughtsRow,
@@ -413,7 +413,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                 <div className={styles.partnerBackground}>
                   {renderEditableRow(
                     '背景故事',
-                    `命定系统.命定之人.${name}.背景故事`,
+                    `命定系统.关系列表.${name}.背景故事`,
                     partner.背景故事,
                     'textarea',
                     styles.backgroundRow,
@@ -431,7 +431,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                     data={partner.登神长阶}
                     compact
                     editEnabled={editEnabled}
-                    pathPrefix={`命定系统.命定之人.${name}.登神长阶`}
+                    pathPrefix={`命定系统.关系列表.${name}.登神长阶`}
                   />
                 </div>
               )}
@@ -469,8 +469,8 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
         </div>
       </Card>
 
-      {/* 命定之人 */}
-      <Card title="命定之人" className={styles.destinyTabPartners}>
+      {/* 关系列表 */}
+      <Card title="伙伴" className={styles.destinyTabPartners}>
         {renderPartners()}
       </Card>
 

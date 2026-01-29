@@ -1,34 +1,34 @@
 <script setup lang="ts">
 import CategorySelectionLayout from '../../components/CategorySelectionLayout.vue';
 import { getBackgrounds } from '../../data/backgrounds';
-import { getAllDestinedOnes } from '../../data/destined-ones';
+import { getAllPartners } from '../../data/destined-ones';
 import { useCharacterStore } from '../../store/character';
 import { useCustomContentStore } from '../../store/customContent';
-import type { Background, DestinedOne } from '../../types';
+import type { Background, Partner } from '../../types';
 
 import BackgroundList from './components/BackgroundList.vue';
-import CustomDestinedOneForm from './components/CustomDestinedOneForm.vue';
-import DestinedOneList from './components/DestinedOneList.vue';
+import CustomPartnerForm from './components/CustomPartnerForm.vue';
 import DestinyPointsExchange from './components/DestinyPointsExchange.vue';
 import LevelTabs from './components/LevelTabs.vue';
+import PartnerList from './components/PartnerList.vue';
 
 const characterStore = useCharacterStore();
 const customContentStore = useCustomContentStore();
 
-// 命定之人相关状态
+// 伙伴相关状态
 const currentLevel = ref<string>('');
 
 // 初始剧情相关状态
 const currentBackgroundCategory = ref<string>('');
 
 // 提取分类和层级为计算属性，遵循 DRY 原则
-const destinedOneLevels = computed(() => Object.keys(getAllDestinedOnes()));
+const partnerLevels = computed(() => Object.keys(getAllPartners()));
 const backgroundCategories = computed(() => Object.keys(getBackgrounds()));
 
-// 获取当前层级的命定之人列表
-const currentDestinedOnes = computed<DestinedOne[]>(() => {
+// 获取当前层级的伙伴列表
+const currentPartners = computed<Partner[]>(() => {
   if (!currentLevel.value) return [];
-  return getAllDestinedOnes()[currentLevel.value] || [];
+  return getAllPartners()[currentLevel.value] || [];
 });
 
 // 获取当前分类的背景列表
@@ -42,17 +42,17 @@ const availablePoints = computed(() => {
   return characterStore.character.reincarnationPoints - characterStore.consumedPoints;
 });
 
-// 命定之人操作
-const handleSelectDestinedOne = (destinedOne: DestinedOne) => {
-  characterStore.addDestinedOne(destinedOne);
+// 伙伴操作
+const handleSelectPartner = (partner: Partner) => {
+  characterStore.addPartner(partner);
 };
 
-const handleDeselectDestinedOne = (destinedOne: DestinedOne) => {
-  characterStore.removeDestinedOne(destinedOne);
+const handleDeselectPartner = (partner: Partner) => {
+  characterStore.removePartner(partner);
 };
 
-const handleAddCustomDestinedOne = (destinedOne: DestinedOne) => {
-  characterStore.addDestinedOne(destinedOne);
+const handleAddCustomPartner = (partner: Partner) => {
+  characterStore.addPartner(partner);
 };
 
 // 背景操作
@@ -84,16 +84,16 @@ const handleUpdateCustomDescription = (value: string) => {
 
 // 清空所有选择
 const handleClearAll = () => {
-  characterStore.clearDestinedOnes();
+  characterStore.clearPartners();
   characterStore.setBackground(null);
   customContentStore.updateCustomBackgroundDescription('');
 };
 
 // 初始化
 onMounted(() => {
-  // 初始化命定之人层级
-  if (destinedOneLevels.value.length > 0) {
-    currentLevel.value = destinedOneLevels.value[0];
+  // 初始化伙伴层级
+  if (partnerLevels.value.length > 0) {
+    currentLevel.value = partnerLevels.value[0];
   }
 
   // 初始化背景分类
@@ -105,25 +105,25 @@ onMounted(() => {
 
 <template>
   <div class="background-page">
-    <!-- 命定之人区域 -->
+    <!-- 伙伴区域 -->
     <section class="destined-ones-section">
-      <h2 class="section-title">选择命定之人</h2>
+      <h2 class="section-title">选择伙伴</h2>
 
       <!-- 层级导航 -->
-      <LevelTabs v-model="currentLevel" :levels="destinedOneLevels" />
+      <LevelTabs v-model="currentLevel" :levels="partnerLevels" />
 
-      <!-- 命定之人列表 -->
+      <!-- 伙伴列表 -->
       <div class="destined-ones-content">
-        <DestinedOneList
-          :items="currentDestinedOnes"
-          @select="handleSelectDestinedOne"
-          @deselect="handleDeselectDestinedOne"
+        <PartnerList
+          :items="currentPartners"
+          @select="handleSelectPartner"
+          @deselect="handleDeselectPartner"
         />
       </div>
     </section>
 
-    <!-- 自定义命定之人表单 -->
-    <CustomDestinedOneForm @add="handleAddCustomDestinedOne" />
+    <!-- 自定义伙伴表单 -->
+    <CustomPartnerForm @add="handleAddCustomPartner" />
 
     <!-- 命运点数兑换 -->
     <DestinyPointsExchange />
@@ -165,9 +165,7 @@ onMounted(() => {
             </div>
           </div>
           <button
-            v-if="
-              characterStore.selectedDestinedOnes.length > 0 || characterStore.selectedBackground
-            "
+            v-if="characterStore.selectedPartners.length > 0 || characterStore.selectedBackground"
             class="clear-btn"
             @click="handleClearAll"
           >
@@ -176,20 +174,18 @@ onMounted(() => {
         </div>
 
         <div class="summary-content">
-          <!-- 命定之人摘要 -->
-          <div v-if="characterStore.selectedDestinedOnes.length > 0" class="summary-group">
-            <div class="summary-label">
-              命定之人 ({{ characterStore.selectedDestinedOnes.length }})
-            </div>
+          <!-- 伙伴摘要 -->
+          <div v-if="characterStore.selectedPartners.length > 0" class="summary-group">
+            <div class="summary-label">伙伴列表 ({{ characterStore.selectedPartners.length }})</div>
             <div class="summary-items">
               <div
-                v-for="one in characterStore.selectedDestinedOnes"
-                :key="one.name"
+                v-for="partner in characterStore.selectedPartners"
+                :key="partner.name"
                 class="summary-item"
               >
-                <span class="item-name">{{ one.name }}</span>
-                <span class="item-cost">{{ one.cost }} 点</span>
-                <button class="remove-btn" @click="handleDeselectDestinedOne(one)">
+                <span class="item-name">{{ partner.name }}</span>
+                <span class="item-cost">{{ partner.cost }} 点</span>
+                <button class="remove-btn" @click="handleDeselectPartner(partner)">
                   <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
@@ -209,7 +205,7 @@ onMounted(() => {
           <!-- 空状态提示 -->
           <div
             v-if="
-              characterStore.selectedDestinedOnes.length === 0 && !characterStore.selectedBackground
+              characterStore.selectedPartners.length === 0 && !characterStore.selectedBackground
             "
             class="empty-state"
           >
@@ -239,7 +235,7 @@ onMounted(() => {
   border-bottom: 2px solid var(--border-color);
 }
 
-// 命定之人区域
+// 伙伴区域
 .destined-ones-section {
   display: flex;
   flex-direction: column;

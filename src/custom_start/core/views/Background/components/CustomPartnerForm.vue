@@ -11,14 +11,14 @@ import {
   FormTextarea,
 } from '../../../components/Form';
 import { useCustomContentStore } from '../../../store/customContent';
-import type { DestinedOne, Rarity } from '../../../types';
+import type { Partner, Rarity } from '../../../types';
 import { calculateDestinedCost } from '../../../utils/cost-calculator';
 import AttributeEditor, { type Attributes } from './AttributeEditor.vue';
 import EquipmentEditor, { type EquipmentItem } from './EquipmentEditor.vue';
 import SkillEditor, { type SkillItem } from './SkillEditor.vue';
 
 interface Emits {
-  (e: 'add', item: DestinedOne): void;
+  (e: 'add', item: Partner): void;
 }
 
 const emit = defineEmits<Emits>();
@@ -43,80 +43,80 @@ const contractOptions = [
 
 // 表单数据 - 使用 computed 双向绑定，通过函数访问确保响应式
 const itemName = computed({
-  get: () => customContentStore.customDestinedOneForm.itemName,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemName', v),
+  get: () => customContentStore.customPartnerForm.itemName,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemName', v),
 });
 const itemLevel = computed({
-  get: () => customContentStore.customDestinedOneForm.itemLevel,
-  set: (v: number) => customContentStore.updateCustomDestinedOneForm('itemLevel', v),
+  get: () => customContentStore.customPartnerForm.itemLevel,
+  set: (v: number) => customContentStore.updateCustomPartnerForm('itemLevel', v),
 });
 const itemLifeLevel = computed({
-  get: () => customContentStore.customDestinedOneForm.itemLifeLevel,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemLifeLevel', v),
+  get: () => customContentStore.customPartnerForm.itemLifeLevel,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemLifeLevel', v),
 });
 const itemGrade = computed({
-  get: () => customContentStore.customDestinedOneForm.itemGrade,
-  set: (v: number) => customContentStore.updateCustomDestinedOneForm('itemGrade', v),
+  get: () => customContentStore.customPartnerForm.itemGrade,
+  set: (v: number) => customContentStore.updateCustomPartnerForm('itemGrade', v),
 });
 const itemRace = computed({
-  get: () => customContentStore.customDestinedOneForm.itemRace,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemRace', v),
+  get: () => customContentStore.customPartnerForm.itemRace,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemRace', v),
 });
 const itemIdentity = computed({
-  get: () => customContentStore.customDestinedOneForm.itemIdentity,
-  set: (v: string[]) => customContentStore.updateCustomDestinedOneForm('itemIdentity', v),
+  get: () => customContentStore.customPartnerForm.itemIdentity,
+  set: (v: string[]) => customContentStore.updateCustomPartnerForm('itemIdentity', v),
 });
 const itemCareer = computed({
-  get: () => customContentStore.customDestinedOneForm.itemCareer,
-  set: (v: string[]) => customContentStore.updateCustomDestinedOneForm('itemCareer', v),
+  get: () => customContentStore.customPartnerForm.itemCareer,
+  set: (v: string[]) => customContentStore.updateCustomPartnerForm('itemCareer', v),
 });
 const itemPersonality = computed({
-  get: () => customContentStore.customDestinedOneForm.itemPersonality,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemPersonality', v),
+  get: () => customContentStore.customPartnerForm.itemPersonality,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemPersonality', v),
 });
 const itemLike = computed({
-  get: () => customContentStore.customDestinedOneForm.itemLike,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemLike', v),
+  get: () => customContentStore.customPartnerForm.itemLike,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemLike', v),
 });
 const itemApp = computed({
-  get: () => customContentStore.customDestinedOneForm.itemApp,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemApp', v),
+  get: () => customContentStore.customPartnerForm.itemApp,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemApp', v),
 });
 const itemCloth = computed({
-  get: () => customContentStore.customDestinedOneForm.itemCloth,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemCloth', v),
+  get: () => customContentStore.customPartnerForm.itemCloth,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemCloth', v),
 });
 const itemEquip = computed({
-  get: () => customContentStore.customDestinedOneForm.itemEquip,
-  set: (v: EquipmentItem[]) => customContentStore.updateCustomDestinedOneForm('itemEquip', v),
+  get: () => customContentStore.customPartnerForm.itemEquip,
+  set: (v: EquipmentItem[]) => customContentStore.updateCustomPartnerForm('itemEquip', v),
 });
 const itemAttributes = computed({
-  get: () => customContentStore.customDestinedOneForm.itemAttributes,
-  set: (v: Attributes) => customContentStore.updateCustomDestinedOneForm('itemAttributes', v),
+  get: () => customContentStore.customPartnerForm.itemAttributes,
+  set: (v: Attributes) => customContentStore.updateCustomPartnerForm('itemAttributes', v),
 });
 const itemStairway = computed({
-  get: () => customContentStore.customDestinedOneForm.itemStairway,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemStairway', v),
+  get: () => customContentStore.customPartnerForm.itemStairway,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemStairway', v),
 });
 const itemIsContract = computed({
-  get: () => customContentStore.customDestinedOneForm.itemIsContract,
-  set: (v: boolean) => customContentStore.updateCustomDestinedOneForm('itemIsContract', v),
+  get: () => customContentStore.customPartnerForm.itemIsContract,
+  set: (v: boolean) => customContentStore.updateCustomPartnerForm('itemIsContract', v),
 });
 const itemAffinity = computed({
-  get: () => customContentStore.customDestinedOneForm.itemAffinity,
-  set: (v: number) => customContentStore.updateCustomDestinedOneForm('itemAffinity', v),
+  get: () => customContentStore.customPartnerForm.itemAffinity,
+  set: (v: number) => customContentStore.updateCustomPartnerForm('itemAffinity', v),
 });
 const itemComment = computed({
-  get: () => customContentStore.customDestinedOneForm.itemComment,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemComment', v),
+  get: () => customContentStore.customPartnerForm.itemComment,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemComment', v),
 });
 const itemBackgroundInfo = computed({
-  get: () => customContentStore.customDestinedOneForm.itemBackgroundInfo,
-  set: (v: string) => customContentStore.updateCustomDestinedOneForm('itemBackgroundInfo', v),
+  get: () => customContentStore.customPartnerForm.itemBackgroundInfo,
+  set: (v: string) => customContentStore.updateCustomPartnerForm('itemBackgroundInfo', v),
 });
 const itemSkills = computed({
-  get: () => customContentStore.customDestinedOneForm.itemSkills,
-  set: (v: SkillItem[]) => customContentStore.updateCustomDestinedOneForm('itemSkills', v),
+  get: () => customContentStore.customPartnerForm.itemSkills,
+  set: (v: SkillItem[]) => customContentStore.updateCustomPartnerForm('itemSkills', v),
 });
 
 // 确认弹窗状态
@@ -145,7 +145,7 @@ watch(
 
 // 重置表单
 const resetForm = () => {
-  customContentStore.resetCustomDestinedOneForm();
+  customContentStore.resetCustomPartnerForm();
   const levelInfo = LEVEL_GRADE_MAP[itemLevel.value];
   if (levelInfo) itemLifeLevel.value = levelInfo.name;
 };
@@ -178,7 +178,7 @@ const cancelAdd = () => {
 };
 
 // 解析登神长阶
-const parseStairway = (str: string): DestinedOne['stairway'] => {
+const parseStairway = (str: string): Partner['stairway'] => {
   if (!str.trim()) return { isOpen: false };
   return {
     isOpen: true,
@@ -188,11 +188,11 @@ const parseStairway = (str: string): DestinedOne['stairway'] => {
   };
 };
 
-// 添加自定义命定之人（确认后执行）
+// 添加自定义伙伴（确认后执行）
 const confirmAdd = () => {
   showAddConfirm.value = false;
 
-  const newItem: DestinedOne = {
+  const newItem: Partner = {
     name: itemName.value.trim(),
     cost: calculatedCost.value,
     lifeLevel: itemLifeLevel.value.trim() || '未知',
@@ -224,8 +224,8 @@ const confirmAdd = () => {
   <div class="custom-destined-form" :class="{ expanded: isExpanded }">
     <div class="form-header" @click="isExpanded = !isExpanded">
       <div class="header-left">
-        <h3 class="form-title">✨ 自定义命定之人</h3>
-        <div class="form-desc">创建您的专属命定之人</div>
+        <h3 class="form-title">✨ 自定义伙伴</h3>
+        <div class="form-desc">创建您的专属伙伴</div>
       </div>
       <div class="toggle-icon" :class="{ rotated: isExpanded }">▼</div>
     </div>
@@ -351,9 +351,9 @@ const confirmAdd = () => {
         </div>
       </div>
 
-      <!-- 是否缔结契约 -->
+      <!-- 命定契约 -->
       <div class="form-row">
-        <FormLabel label="是否缔结契约" />
+        <FormLabel label="命定契约" />
         <FormRadio v-model="itemIsContract" :options="contractOptions" />
       </div>
 

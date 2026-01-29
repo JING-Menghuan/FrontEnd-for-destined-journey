@@ -1,5 +1,5 @@
 import JSON5 from 'json5';
-import type { Background, BaseInfoData, DestinedOne, Equipment, Item, Skill } from '../types';
+import type { Background, BaseInfoData, Equipment, Item, Partner, Skill } from '../types';
 
 /**
  * 数据基础路径 - CDN 部署环境
@@ -62,11 +62,11 @@ export async function loadCustomBackgrounds(): Promise<Record<string, Background
 }
 
 /**
- * 加载自定义命定之人数据
- * 从 public/assets/data 目录加载用户自定义的初始剧情数据
+ * 加载自定义伙伴数据
+ * 从 public/assets/data 目录加载用户自定义的伙伴数据
  */
-export async function loadCustomDestinedOnes(): Promise<Record<string, DestinedOne[]>> {
-  return loadJsonData<Record<string, DestinedOne[]>>('destinedOnes.json', '命定之人');
+export async function loadCustomPartners(): Promise<Record<string, Partner[]>> {
+  return loadJsonData<Record<string, Partner[]>>('partners.json', '伙伴');
 }
 
 /**

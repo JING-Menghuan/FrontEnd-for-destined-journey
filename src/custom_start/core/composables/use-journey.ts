@@ -27,7 +27,7 @@ export function useJourney(): UseJourneyReturn {
         character.value,
         characterStore.selectedItems,
         characterStore.selectedSkills,
-        characterStore.selectedDestinedOnes,
+        characterStore.selectedPartners,
       );
       console.log('✅ 角色数据已写入 MVU 变量');
 
@@ -35,7 +35,7 @@ export function useJourney(): UseJourneyReturn {
       const aiPrompt = generateAIPrompt(
         character.value,
         characterStore.selectedEquipments,
-        characterStore.selectedDestinedOnes,
+        characterStore.selectedPartners,
         characterStore.selectedBackground,
         characterStore.selectedItems,
         characterStore.selectedSkills,

@@ -32,17 +32,17 @@ export function calculateCostByPosition(rarity: Rarity, position: number = 0.5):
 }
 
 /**
- * 命定之人总层级数（固定为 7）
+ * 伙伴总层级数（固定为 7）
  */
 export const DESTINED_TOTAL_TIERS = 7;
 
 /**
- * 命定之人 Cost 范围
+ * 伙伴 Cost 范围
  */
 const DESTINED_COST_VALUES = [100, 213, 456, 2678, 4642, 8318, 9999];
 
 /**
- * 命定之人层级 Cost 计算
+ * 伙伴层级 Cost 计算
  * @param currentTier 当前层级（1-7）
  * @returns 该层级对应的 cost 值
  */
@@ -55,7 +55,7 @@ export function calculateDestinedCost(currentTier: number): number {
 }
 
 /**
- * 生成命定之人所有 7 个层级的 Cost 数组
+ * 生成伙伴所有 7 个层级的 Cost 数组
  * @returns Cost 数组
  */
 export function getDestinedCostArray(): number[] {

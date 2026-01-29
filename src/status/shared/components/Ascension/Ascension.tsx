@@ -5,7 +5,7 @@ import styles from './Ascension.module.scss';
 
 export interface AscensionProps {
   data?: AscensionType;
-  /** 是否紧凑模式（用于命定之人详情） */
+  /** 是否紧凑模式（用于伙伴详情） */
   compact?: boolean;
   /** 是否启用编辑模式 */
   editEnabled?: boolean;
@@ -23,7 +23,7 @@ interface SectionConfig {
 
 /**
  * 登神长阶组件
- * 可复用于主角和命定之人
+ * 可复用于主角和伙伴
  */
 export const Ascension: FC<AscensionProps> = ({
   data,
