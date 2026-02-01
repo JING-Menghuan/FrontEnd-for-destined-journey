@@ -6,11 +6,23 @@ import { getFilteredEntries, getWorldBookName, updateWorldBook } from './worldbo
 export const UNCATEGORIZED_TAB = '这是什么杯';
 
 // 固定的特别推荐tab名称
-export const SPECIAL_RECOMMEND_TAB = '特别推荐';
+export const SPECIAL_RECOMMEND_TAB = '✦特别推荐✦';
 
 // 特别推荐核心配置类型
 export interface SpecialRecommendConfig {
   note: string;
+}
+
+// 特别推荐最大显示数量
+export const MAX_SPECIAL_RECOMMEND_COUNT = 3;
+
+// 特别推荐核心的完整信息（包含可用性状态）
+export interface SpecialRecommendCore {
+  value: string;
+  label: string;
+  author: string;
+  specialNote: string;
+  available: boolean; // 核心是否在核心列表中存在
 }
 
 // 核心选项类型
@@ -49,6 +61,11 @@ type CoreClassificationData = Record<string, Record<string, { note?: string }>>;
  * 缓存的排行榜数据
  */
 let cachedRankings: CoreClassificationData | null = null;
+
+/**
+ * 缓存的特别推荐核心数据
+ */
+let cachedSpecialRecommendCores: Record<string, SpecialRecommendConfig> | null = null;
 
 /**
  * 数据基础路径 - CDN 部署环境
@@ -91,6 +108,33 @@ function getRankings(): CoreClassificationData | undefined {
 }
 
 /**
+ * 从远程加载特别推荐核心数据
+ * 使用 JSON5 解析，支持注释和更灵活的格式
+ */
+export async function loadSpecialRecommendCores(): Promise<Record<string, SpecialRecommendConfig>> {
+  if (cachedSpecialRecommendCores !== null) {
+    return cachedSpecialRecommendCores;
+  }
+
+  try {
+    const response = await fetch(`${DATA_BASE_PATH}/SPECIAL_RECOMMEND_CORES.json`);
+    if (!response.ok) {
+      console.log('未找到特别推荐核心数据文件 (SPECIAL_RECOMMEND_CORES.json)');
+      return {};
+    }
+
+    const text = await response.text();
+    const data = JSON5.parse(text) as Record<string, SpecialRecommendConfig>;
+    console.log('成功加载特别推荐核心数据');
+    cachedSpecialRecommendCores = data;
+    return data;
+  } catch (error) {
+    console.log('未找到特别推荐核心数据或格式错误:', error);
+    return {};
+  }
+}
+
+/**
  * 从排行榜数据中动态获取所有tab名称
  */
 export async function getTabsFromRankings(): Promise<string[]> {
@@ -116,27 +160,14 @@ export async function getTabsFromRankings(): Promise<string[]> {
 /**
  * 根据核心label查找其所属的所有tab分类和note
  * 一个核心可以同时属于多个分组
+ * 注意：特别推荐通过独立逻辑处理，不在此函数中添加
  * @param label 核心标签（不含前缀和作者）
- * @param coreValue 核心完整值（用于检查特别推荐）
  * @param allTabs 所有tab列表
- * @param specialRecommendCores 特别推荐核心列表（从外部传入）
  */
-export function getCoreRanking(
-  label: string,
-  coreValue: string,
-  allTabs: string[],
-  specialRecommendCores: Record<string, SpecialRecommendConfig> = {},
-): { tabs: string[]; note: string; specialNote: string } {
+export function getCoreRanking(label: string, allTabs: string[]): { tabs: string[]; note: string } {
   const Rankings = getRankings();
   const matchedTabs: string[] = [];
   let note = '';
-  let specialNote = '';
-
-  // 首先检查是否在特别推荐列表中
-  if (coreValue in specialRecommendCores) {
-    matchedTabs.push(SPECIAL_RECOMMEND_TAB);
-    specialNote = specialRecommendCores[coreValue]?.note || '';
-  }
 
   if (Rankings && typeof Rankings === 'object') {
     // 遍历所有tab查找核心（排除"这是什么杯"和"特别推荐"）
@@ -159,10 +190,49 @@ export function getCoreRanking(
 
   // 未找到任何分组则归入"这是什么杯"
   if (matchedTabs.length === 0) {
-    return { tabs: [UNCATEGORIZED_TAB], note: '', specialNote: '' };
+    return { tabs: [UNCATEGORIZED_TAB], note: '' };
   }
 
-  return { tabs: matchedTabs, note, specialNote };
+  return { tabs: matchedTabs, note };
+}
+
+/**
+ * 生成特别推荐核心列表（包含可用性信息）
+ * 返回所有推荐核心，标记哪些在核心列表中存在（可用），最多返回 MAX_SPECIAL_RECOMMEND_COUNT 个
+ * @param specialRecommendCores 特别推荐核心配置
+ * @param existingCoreValues 当前存在的核心值集合
+ */
+export function generateSpecialRecommendCores(
+  specialRecommendCores: Record<string, SpecialRecommendConfig>,
+  existingCoreValues: Set<string>,
+): SpecialRecommendCore[] {
+  const result: SpecialRecommendCore[] = [];
+  let count = 0;
+
+  for (const [coreValue, config] of Object.entries(specialRecommendCores)) {
+    if (count >= MAX_SPECIAL_RECOMMEND_COUNT) {
+      break;
+    }
+
+    // 去掉"命定系统-"前缀
+    const nameWithoutPrefix = coreValue.replace(/^命定系统-/, '');
+    // 提取作者信息（括号内容）
+    const authorMatch = nameWithoutPrefix.match(/\(([^)]*)\)$/);
+    const author = authorMatch ? authorMatch[1] : '';
+    // 去掉末尾括号内容作为显示标签
+    const label = nameWithoutPrefix.replace(/\(([^)]*)\)$/, '');
+
+    result.push({
+      value: coreValue,
+      label,
+      author,
+      specialNote: config.note,
+      available: existingCoreValues.has(coreValue),
+    });
+    count++;
+  }
+
+  return result;
 }
 
 /**
@@ -195,11 +265,27 @@ export async function loadCoreOptions(
   tabs: string[];
   activeTab: string;
   bookName: string | null;
+  specialRecommendCoreList: SpecialRecommendCore[];
 }> {
   // 动态获取tabs（需要先加载核心分类数据）
   const tabs = await getTabsFromRankings();
   const bookName = getWorldBookName();
   const entries = await getFilteredEntries(CORE_PATTERN, bookName);
+
+  // 构建存在的核心值集合
+  const existingCoreValues = new Set(entries.map((entry: { name: string }) => entry.name));
+
+  // 生成特别推荐核心列表（包含可用性信息，最多3个）
+  const specialRecommendCoreList = generateSpecialRecommendCores(
+    specialRecommendCores,
+    existingCoreValues,
+  );
+
+  // 创建可用的特别推荐核心值集合（用于后续判断）
+  const availableSpecialCores = new Set(
+    specialRecommendCoreList.filter(core => core.available).map(core => core.value),
+  );
+
   const coreOptions = entries.map((entry: { name: string; enabled: boolean }) => {
     // 去掉"命定系统-"前缀
     const nameWithoutPrefix = entry.name.replace(CORE_PATTERN, '');
@@ -208,15 +294,25 @@ export async function loadCoreOptions(
     const author = authorMatch ? authorMatch[1] : '';
     // 去掉末尾括号内容作为显示标签
     const label = nameWithoutPrefix.replace(AUTHOR_PATTERN, '');
-    const ranking = getCoreRanking(label, entry.name, tabs, specialRecommendCores);
+    const ranking = getCoreRanking(label, tabs);
+
+    // 独立处理特别推荐：检查核心是否在可用的特别推荐列表中
+    const coreTabs = [...ranking.tabs];
+    let specialNote = '';
+    if (availableSpecialCores.has(entry.name)) {
+      coreTabs.unshift(SPECIAL_RECOMMEND_TAB); // 特别推荐放在最前面
+      const recommendCore = specialRecommendCoreList.find(c => c.value === entry.name);
+      specialNote = recommendCore?.specialNote || '';
+    }
+
     return {
       value: entry.name,
       label,
       author,
       enabled: entry.enabled,
-      tabs: ranking.tabs, // 使用tabs数组
+      tabs: coreTabs,
       note: ranking.note,
-      specialNote: ranking.specialNote,
+      specialNote,
     };
   });
 
@@ -226,7 +322,14 @@ export async function loadCoreOptions(
   // 固定显示第一个tab（特别推荐），取消自动切换到已启用核心的tab
   const activeTab = tabs[0] || SPECIAL_RECOMMEND_TAB;
 
-  return { coreOptions, localCoreSelections, tabs, activeTab, bookName };
+  return {
+    coreOptions,
+    localCoreSelections,
+    tabs,
+    activeTab,
+    bookName,
+    specialRecommendCoreList,
+  };
 }
 
 /**

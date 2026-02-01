@@ -19,11 +19,16 @@
             v-for="tab in visibleTabs"
             :key="tab"
             class="tab-button"
-            :class="{ active: activeTab === tab }"
+            :class="{
+              active: activeTab === tab,
+              'special-recommend-tab': tab === SPECIAL_RECOMMEND_TAB,
+            }"
             @click="activeTab = tab"
           >
             <span class="tab-label">{{ tab }}</span>
-            <span class="tab-count">({{ getCoresForTab(tab).length }})</span>
+            <span v-if="tab !== SPECIAL_RECOMMEND_TAB" class="tab-count"
+              >({{ getCoresForTab(tab).length }})</span
+            >
           </button>
         </div>
         <button
@@ -47,12 +52,47 @@
 
       <div class="tab-content">
         <div class="control-group">
-          <div class="control-group-header">
-            <h3 class="control-group-title">命定系统核心:</h3>
-          </div>
-
           <div v-if="isLoading" class="loading-text">正在加载核心列表...</div>
           <div v-else-if="coreOptions.length === 0" class="empty-text">未找到可用的核心</div>
+          <!-- 特别推荐显示 - 特殊卡片布局 -->
+          <div v-else-if="isSpecialRecommendTab" class="special-recommend-container">
+            <div class="recommend-hero-section">
+              <div class="hero-icon">✦</div>
+              <div class="hero-content">
+                <h3 class="hero-title">本周精选</h3>
+                <p class="hero-subtitle">由<s>社区</s>与编辑共同甄选的优质(?)核心</p>
+              </div>
+              <div class="hero-divider"></div>
+            </div>
+            <div class="special-recommend-cards">
+              <div
+                v-for="recommendCore in specialRecommendCoreList"
+                :key="recommendCore.value"
+                class="special-recommend-card"
+                :class="{
+                  unavailable: !recommendCore.available,
+                  selected: selectedCore === recommendCore.value,
+                }"
+                @click="recommendCore.available && handleSelectCore(recommendCore.value)"
+              >
+                <div v-if="!recommendCore.available" class="card-overlay"></div>
+                <div class="card-content">
+                  <div class="card-label">{{ recommendCore.label }}</div>
+                  <div v-if="recommendCore.author" class="card-author">
+                    {{ recommendCore.author }}
+                  </div>
+                  <div class="card-note">
+                    <template v-if="!recommendCore.available">不可用</template>
+                    <template v-else-if="recommendCore.specialNote">{{
+                      recommendCore.specialNote
+                    }}</template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 普通核心显示 -->
           <div v-else class="control-buttons">
             <div
               v-for="core in getCoresForTab(activeTab)"
@@ -67,10 +107,7 @@
                 {{ core.label }}
               </button>
               <div v-if="core.author" class="core-author">{{ core.author }}</div>
-              <div v-if="isSpecialRecommendTab && core.specialNote" class="core-note">
-                {{ core.specialNote }}
-              </div>
-              <div v-else-if="!isSpecialRecommendTab && core.note" class="core-note">
+              <div v-if="core.note" class="core-note">
                 {{ core.note }}
               </div>
             </div>
@@ -80,11 +117,11 @@
     </div>
 
     <div class="step-footer">
-      <button class="nav-button" @click="$emit('prev')">
+      <button class="nav-button" :disabled="isSaving" @click="$emit('prev')">
         <span>上一步</span>
       </button>
-      <button class="nav-button" :disabled="isLoading" @click="handleNext">
-        <span>下一步</span>
+      <button class="nav-button" :disabled="isLoading || isSaving" @click="handleNext">
+        <span>{{ isSaving ? '保存中...' : '下一步' }}</span>
       </button>
     </div>
   </div>
@@ -97,21 +134,13 @@ import {
   getSelectedCore,
   initialCoreState,
   loadCoreOptions as loadCoreOptionsService,
+  loadSpecialRecommendCores,
   saveChanges as saveChangesService,
   selectCore,
   SPECIAL_RECOMMEND_TAB,
   type CoreOption,
-  type SpecialRecommendConfig,
+  type SpecialRecommendCore,
 } from '../services/CorePage';
-
-// 硬编码的特别推荐核心列表
-// 只有在核心列表中存在的核心才会显示
-// key为核心完整值，value为note信息
-const SPECIAL_RECOMMEND_CORES: Record<string, SpecialRecommendConfig> = {
-  '命定系统-null核心(H一串)': { note: '纯私货' },
-  '命定系统-读者核心(Angtuck)': { note: '故事的读者，不明存在-九十九夜梦' },
-  '命定系统-小夜莺核心(fishfish)': { note: '你说的对，但是诗灵是一款由...' },
-};
 
 const emit = defineEmits<{
   prev: [];
@@ -119,11 +148,13 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
+const isSaving = ref(false);
 const tabs = ref<string[]>([...initialCoreState.tabs]);
 const activeTab = ref<string>(initialCoreState.activeTab);
 const coreOptions = ref<CoreOption[]>([...initialCoreState.coreOptions]);
 const localCoreSelections = ref(new Map(initialCoreState.localCoreSelections));
 const bookName = ref<string | null>(null);
+const specialRecommendCoreList = ref<SpecialRecommendCore[]>([]);
 
 // Tab 分页相关
 const maxVisibleTabs = 4;
@@ -181,18 +212,22 @@ function getCoresForTab(tab: string): CoreOption[] {
 async function loadCoreOptions() {
   isLoading.value = true;
   try {
-    const result = await loadCoreOptionsService(SPECIAL_RECOMMEND_CORES);
+    // 从远程加载特别推荐核心数据
+    const specialRecommendCoresData = await loadSpecialRecommendCores();
+    const result = await loadCoreOptionsService(specialRecommendCoresData);
     tabs.value = result.tabs;
     coreOptions.value = result.coreOptions;
     localCoreSelections.value = result.localCoreSelections;
     activeTab.value = result.activeTab;
     bookName.value = result.bookName;
+    specialRecommendCoreList.value = result.specialRecommendCoreList;
   } catch (error) {
     console.error('加载核心列表失败:', error);
     tabs.value = [];
     coreOptions.value = [];
     localCoreSelections.value = new Map();
     bookName.value = null;
+    specialRecommendCoreList.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -210,7 +245,7 @@ function handleSelectCore(coreValue: string) {
  * 点击下一步：根据本地列表更新世界书后跳转
  */
 async function handleNext() {
-  isLoading.value = true;
+  isSaving.value = true;
   try {
     if (bookName.value) {
       coreOptions.value = await saveChangesService(
@@ -222,7 +257,7 @@ async function handleNext() {
   } catch (error) {
     console.error('保存核心选择失败:', error);
   } finally {
-    isLoading.value = false;
+    isSaving.value = false;
   }
   emit('next');
 }
@@ -465,6 +500,193 @@ onMounted(() => {
   width: 100%;
   box-sizing: border-box;
   word-break: break-word;
+}
+
+/* 特别推荐容器样式 */
+.special-recommend-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 垂直居中 */
+  padding: 20px 0;
+  height: 100%; /* 占满父容器高度 */
+  min-height: 400px; /* 保证最小高度 */
+}
+
+.recommend-hero-section {
+  text-align: center;
+  margin-bottom: 35px; /* 推开下方卡片 */
+  animation: fadeIn 0.6s ease-out;
+}
+
+.hero-icon {
+  font-size: 24px;
+  color: #d4a574;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.hero-title {
+  font-family: var(--title-font);
+  font-size: 1.4em;
+  color: var(--title-color);
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.hero-subtitle {
+  font-family: var(--body-font);
+  font-size: 0.9em;
+  color: #8b7355;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.hero-divider {
+  width: 40px;
+  height: 2px;
+  background-color: #d4a574;
+  margin: 15px auto 0;
+  opacity: 0.4;
+}
+
+.special-recommend-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.special-recommend-icon {
+  font-size: 1.2em;
+  color: #d4a574;
+}
+
+.special-recommend-title {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: var(--title-color);
+  letter-spacing: 2px;
+}
+
+.special-recommend-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px; /* 增加间距 */
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.special-recommend-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 宽度从 180px 增加到 260px */
+  width: 260px;
+  /* 高度从 160px 增加到 200px */
+  min-height: 200px;
+  /* 增加内边距 */
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #fdf8f3 0%, #f5ebe0 100%);
+  border: 2px solid #d4a574;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(139, 115, 85, 0.12); /* 阴影加深一点 */
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.special-recommend-card:hover:not(.unavailable) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(139, 115, 85, 0.25);
+  border-color: #c69c6d;
+}
+
+.special-recommend-card.selected {
+  border-color: var(--title-color);
+  background: linear-gradient(135deg, #f5ebe0 0%, #ede0d4 100%);
+  box-shadow: 0 4px 16px rgba(139, 115, 85, 0.3);
+}
+
+.special-recommend-card.unavailable {
+  cursor: not-allowed;
+  opacity: 0.7;
+  filter: grayscale(40%);
+}
+
+.special-recommend-card.unavailable:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(139, 115, 85, 0.15);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(128, 128, 128, 0.15);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  margin-top: 8px;
+  z-index: 2;
+  position: relative;
+}
+
+.card-label {
+  font-size: 1.35em; /* 原为 1.1em */
+  font-weight: 700;
+  color: var(--title-color);
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+/* 增大作者字体 */
+.card-author {
+  font-size: 0.95em; /* 原为 0.85em */
+  color: #8b7355;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+/* 优化备注样式 */
+.card-note {
+  font-size: 0.9em; /* 原为 0.8em */
+  color: #6a514d;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  margin-top: 8px;
+  line-height: 1.5;
+  width: 100%; /* 确保备注背景占满 */
+  box-sizing: border-box;
+}
+
+/* 添加一个简单的淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.special-recommend-card.unavailable .card-note {
+  color: #999;
+  font-style: italic;
 }
 
 .loading-text,

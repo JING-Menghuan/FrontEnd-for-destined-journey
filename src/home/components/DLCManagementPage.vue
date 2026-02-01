@@ -220,8 +220,8 @@
 
     <div class="step-footer">
       <div></div>
-      <button class="nav-button" :disabled="isLoading" @click="handleNext">
-        <span>下一步</span>
+      <button class="nav-button" :disabled="isLoading || isSaving" @click="handleNext">
+        <span>{{ isSaving ? '保存中...' : '下一步' }}</span>
       </button>
     </div>
   </div>
@@ -252,6 +252,7 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
+const isSaving = ref(false);
 
 // Tab 状态
 const activeTab = ref<'characters' | 'events' | 'extensions'>('characters');
@@ -356,34 +357,38 @@ function handleToggleExtension(extensionKey: string) {
 
 /**
  * 点击下一步：根据本地列表更新世界书后跳转
+ * 注意：必须顺序保存，避免并行调用 updateWorldBook 导致竞态条件
  */
 async function handleNext() {
-  isLoading.value = true;
+  isSaving.value = true;
   try {
     if (bookName.value) {
-      // 并行保存角色、事件和扩展选择
-      const [updatedCharacters, updatedEvents, updatedExtensions] = await Promise.all([
-        saveCharacterChangesService(
-          characterOptions.value,
-          localCharacterSelections.value,
-          bookName.value,
-        ),
-        saveEventChangesService(eventOptions.value, localEventSelections.value, bookName.value),
-        saveExtensionChangesService(
-          extensionOptions.value,
-          localExtensionSelections.value,
-          bookName.value,
-        ),
-      ]);
-
+      // 顺序保存角色、事件和扩展选择，避免竞态条件
+      const updatedCharacters = await saveCharacterChangesService(
+        characterOptions.value,
+        localCharacterSelections.value,
+        bookName.value,
+      );
       characterOptions.value = updatedCharacters;
+
+      const updatedEvents = await saveEventChangesService(
+        eventOptions.value,
+        localEventSelections.value,
+        bookName.value,
+      );
       eventOptions.value = updatedEvents;
+
+      const updatedExtensions = await saveExtensionChangesService(
+        extensionOptions.value,
+        localExtensionSelections.value,
+        bookName.value,
+      );
       extensionOptions.value = updatedExtensions;
     }
   } catch (error) {
     console.error('保存DLC选择失败:', error);
   } finally {
-    isLoading.value = false;
+    isSaving.value = false;
   }
   emit('next');
 }
@@ -519,6 +524,37 @@ onMounted(() => {
   overflow-y: auto;
   padding-right: 10px;
   border-right: 1px solid var(--border-color);
+
+  /* 默认隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+}
+
+.item-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.item-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.item-list::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+/* 悬停时显示滚动条 */
+.item-list:hover {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* Firefox */
+}
+
+.item-list:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.item-list:hover::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .list-item {
