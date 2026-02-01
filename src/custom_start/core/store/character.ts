@@ -223,6 +223,7 @@ export const useCharacterStore = defineStore('character', () => {
   });
 
   // 监听等级变化，自动重置属性点分配
+  // 使用 flush: 'sync' 确保 watcher 同步执行，避免在应用预设时属性点被异步清空
   watch(
     () => character.value.level,
     () => {
@@ -235,6 +236,7 @@ export const useCharacterStore = defineStore('character', () => {
         精神: 0,
       };
     },
+    { flush: 'sync' },
   );
 
   // 监听种族变化，清除不符合新种族要求的技能
