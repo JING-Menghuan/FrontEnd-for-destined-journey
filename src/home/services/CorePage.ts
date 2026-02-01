@@ -6,7 +6,7 @@ import { getFilteredEntries, getWorldBookName, updateWorldBook } from './worldbo
 export const UNCATEGORIZED_TAB = '这是什么杯';
 
 // 固定的特别推荐tab名称
-export const SPECIAL_RECOMMEND_TAB = '✦特别推荐✦';
+export const SPECIAL_RECOMMEND_TAB = '特别推荐';
 
 // 特别推荐核心配置类型
 export interface SpecialRecommendConfig {
