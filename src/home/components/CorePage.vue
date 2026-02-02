@@ -760,5 +760,32 @@ onMounted(() => {
   .refresh-button {
     padding: 10px 12px;
   }
+
+  /* 特别推荐卡片移动端适配 */
+  .special-recommend-container {
+    min-height: auto;
+    padding: 10px 0;
+  }
+
+  .special-recommend-cards {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .special-recommend-card {
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: auto;
+    aspect-ratio: 4 / 3;
+    padding: 16px 12px;
+  }
+
+  .hero-title {
+    font-size: 1.2em;
+  }
+
+  .card-label {
+    font-size: 1.2em;
+  }
 }
 </style>
