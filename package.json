@@ -16,7 +16,7 @@
     "@types/jquery": "^3.5.33",
     "@types/jqueryui": "^1.12.24",
     "@types/lodash": "^4.17.23",
-    "@types/node": "^25.1.0",
+    "@types/node": "^25.2.0",
     "@types/openseadragon": "^5.0.2",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
@@ -101,11 +101,11 @@
     "toastr": "^2.1.4",
     "vue": "^3.5.27",
     "vue-final-modal": "^4.5.5",
-    "vue-router": "^4.6.4",
+    "vue-router": "^5.0.2",
     "vue3-pixi": "1.0.0-beta.6",
     "yaml": "^2.8.2",
     "zod": "^4.3.6",
-    "zustand": "^5.0.10"
+    "zustand": "^5.0.11"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

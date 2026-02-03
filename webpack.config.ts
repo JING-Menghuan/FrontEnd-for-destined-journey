@@ -115,26 +115,215 @@ function watch_it(compiler: webpack.Compiler) {
   }
 }
 
+// schema dump 相关状态
+const SchemaDump = {
+  initialized: false,
+  hasSchemaFiles: null as boolean | null,
+
+  /** 检测 src 目录下是否存在 schema.ts 文件 */
+  detectSchemaFiles(): boolean {
+    if (this.hasSchemaFiles === null) {
+      this.hasSchemaFiles = globSync('src/**/schema.ts').length > 0;
+    }
+    return this.hasSchemaFiles;
+  },
+};
+
 function dump_schema(compiler: webpack.Compiler) {
+  // 单例模式 + 按需执行：仅在存在 schema.ts 时初始化一次
+  if (SchemaDump.initialized) return;
+  if (!SchemaDump.detectSchemaFiles()) return;
+  SchemaDump.initialized = true;
+
   const execute = () => {
     exec('pnpm dump', { cwd: __dirname });
     console.info('\x1b[36m[schema_dump]\x1b[0m 已将所有 schema.ts 转换为 schema.json');
   };
-  const execute_debounced = _.debounce(execute, 500, { leading: true, trailing: false });
+  const executeDebounced = _.debounce(execute, 500, { leading: true, trailing: false });
 
   if (!compiler.options.watch) {
-    execute_debounced();
+    executeDebounced();
   } else {
     watch('src', {
       awaitWriteFinish: true,
-    }).on('all', (_event, path) => {
-      if (path.endsWith('schema.ts')) {
-        execute_debounced();
+    }).on('all', (_event, changedPath) => {
+      if (changedPath.endsWith('schema.ts')) {
+        executeDebounced();
       }
     });
   }
 }
 
+// 公共配置常量 (DRY 原则)
+
+/** ts-loader 公共配置 */
+const TsLoaderOptions = {
+  transpileOnly: true,
+  onlyCompileBundledFiles: true,
+  compilerOptions: {
+    noUnusedLocals: false,
+    noUnusedParameters: false,
+  },
+} as const;
+
+/** css-loader 基础配置 */
+const CssLoaderOptionsBase = { url: false } as const;
+
+/** css-loader 模块化配置 */
+const CssLoaderOptionsModules = {
+  url: false,
+  esModule: false,
+  modules: {
+    localIdentName: '[name]__[local]--[hash:base64:5]',
+    namedExport: false,
+  },
+} as const;
+
+/** 通用排除规则 */
+const ExcludeNodeModules = /node_modules/;
+
+// 规则生成工厂函数
+type AssetType = 'asset/source' | 'asset/inline';
+
+interface ResourceQueryRuleOptions {
+  resourceQuery: RegExp;
+  type: AssetType;
+}
+
+/**
+ * 生成带 resourceQuery 的规则集
+ * @description 用于 ?raw 和 ?url 导入的统一处理
+ */
+function createResourceQueryRules({
+  resourceQuery,
+  type,
+}: ResourceQueryRuleOptions): webpack.RuleSetRule[] {
+  return [
+    {
+      test: /\.tsx?$/,
+      loader: 'ts-loader',
+      options: TsLoaderOptions,
+      resourceQuery,
+      type,
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.(sa|sc)ss$/,
+      use: ['postcss-loader', 'sass-loader'],
+      resourceQuery,
+      type,
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.css$/,
+      use: ['postcss-loader'],
+      resourceQuery,
+      type,
+      exclude: ExcludeNodeModules,
+    },
+    {
+      resourceQuery,
+      type,
+      exclude: ExcludeNodeModules,
+    },
+  ];
+}
+
+/**
+ * 生成无 HTML 入口时的样式规则
+ * @description 使用 vue-style-loader 和 style-loader
+ */
+function createNoHtmlStyleRules(): webpack.RuleSetRule[] {
+  return [
+    {
+      test: /\.vue\.s(a|c)ss$/,
+      use: [
+        { loader: 'vue-style-loader', options: { ssrId: true } },
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+        'sass-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.vue\.css$/,
+      use: [
+        { loader: 'vue-style-loader', options: { ssrId: true } },
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.s(a|c)ss$/,
+      use: [
+        'style-loader',
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+        'sass-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.css$/,
+      use: [
+        'style-loader',
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+  ];
+}
+
+/**
+ * 生成有 HTML 入口时的样式规则
+ * @description 使用 MiniCssExtractPlugin.loader 提取 CSS
+ */
+function createHtmlStyleRules(): webpack.RuleSetRule[] {
+  return [
+    {
+      test: /\.module\.s(a|c)ss$/,
+      use: [
+        MiniCssExtractPlugin.loader,
+        { loader: 'css-loader', options: CssLoaderOptionsModules },
+        'postcss-loader',
+        'sass-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.s(a|c)ss$/,
+      use: [
+        MiniCssExtractPlugin.loader,
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+        'sass-loader',
+      ],
+      exclude: [ExcludeNodeModules, /\.module\.s(a|c)ss$/],
+    },
+    {
+      test: /\.module\.css$/,
+      use: [
+        MiniCssExtractPlugin.loader,
+        { loader: 'css-loader', options: CssLoaderOptionsModules },
+        'postcss-loader',
+      ],
+      exclude: ExcludeNodeModules,
+    },
+    {
+      test: /\.css$/,
+      use: [
+        MiniCssExtractPlugin.loader,
+        { loader: 'css-loader', options: CssLoaderOptionsBase },
+        'postcss-loader',
+      ],
+      exclude: [ExcludeNodeModules, /\.module\.css$/],
+    },
+  ];
+}
+
+// 配置生成函数
 function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Configuration {
   const should_obfuscate = fs
     .readFileSync(path.join(__dirname, entry.script), 'utf-8')
@@ -187,102 +376,32 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         {
           test: /\.vue$/,
           use: 'vue-loader',
-          exclude: /node_modules/,
+          exclude: ExcludeNodeModules,
         },
         {
           oneOf: [
+            // ?raw 导入规则
+            ...createResourceQueryRules({ resourceQuery: /raw/, type: 'asset/source' }),
+            // ?url 导入规则
+            ...createResourceQueryRules({ resourceQuery: /url/, type: 'asset/inline' }),
+            // TypeScript 默认规则
             {
               test: /\.tsx?$/,
               loader: 'ts-loader',
-              options: {
-                transpileOnly: true,
-                onlyCompileBundledFiles: true,
-                compilerOptions: {
-                  noUnusedLocals: false,
-                  noUnusedParameters: false,
-                },
-              },
-              resourceQuery: /raw/,
-              type: 'asset/source',
-              exclude: /node_modules/,
+              options: TsLoaderOptions,
+              exclude: ExcludeNodeModules,
             },
-            {
-              test: /\.(sa|sc)ss$/,
-              use: ['postcss-loader', 'sass-loader'],
-              resourceQuery: /raw/,
-              type: 'asset/source',
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.css$/,
-              use: ['postcss-loader'],
-              resourceQuery: /raw/,
-              type: 'asset/source',
-              exclude: /node_modules/,
-            },
-            {
-              resourceQuery: /raw/,
-              type: 'asset/source',
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.tsx?$/,
-              loader: 'ts-loader',
-              options: {
-                transpileOnly: true,
-                onlyCompileBundledFiles: true,
-                compilerOptions: {
-                  noUnusedLocals: false,
-                  noUnusedParameters: false,
-                },
-              },
-              resourceQuery: /url/,
-              type: 'asset/inline',
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.(sa|sc)ss$/,
-              use: ['postcss-loader', 'sass-loader'],
-              resourceQuery: /url/,
-              type: 'asset/inline',
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.css$/,
-              use: ['postcss-loader'],
-              resourceQuery: /url/,
-              type: 'asset/inline',
-              exclude: /node_modules/,
-            },
-            {
-              resourceQuery: /url/,
-              type: 'asset/inline',
-              exclude: /node_modules/,
-            },
-            {
-              test: /\.tsx?$/,
-              loader: 'ts-loader',
-              options: {
-                transpileOnly: true,
-                onlyCompileBundledFiles: true,
-                compilerOptions: {
-                  noUnusedLocals: false,
-                  noUnusedParameters: false,
-                },
-              },
-              exclude: /node_modules/,
-            },
+            // HTML 规则
             {
               test: /\.html$/,
               use: 'html-loader',
-              exclude: /node_modules/,
+              exclude: ExcludeNodeModules,
             },
+            // Markdown 规则
             {
               test: /\.md$/,
               use: [
-                {
-                  loader: 'html-loader',
-                },
+                { loader: 'html-loader' },
                 {
                   loader: 'remark-loader',
                   options: {
@@ -293,109 +412,9 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
                 },
               ],
             },
-          ].concat(
-            entry.html === undefined
-              ? ([
-                  {
-                    test: /\.vue\.s(a|c)ss$/,
-                    use: [
-                      { loader: 'vue-style-loader', options: { ssrId: true } },
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                      'sass-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                  {
-                    test: /\.vue\.css$/,
-                    use: [
-                      { loader: 'vue-style-loader', options: { ssrId: true } },
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                  {
-                    test: /\.s(a|c)ss$/,
-                    use: [
-                      'style-loader',
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                      'sass-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                  {
-                    test: /\.css$/,
-                    use: [
-                      'style-loader',
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                ] as any[])
-              : ([
-                  {
-                    test: /\.module\.s(a|c)ss$/,
-                    use: [
-                      MiniCssExtractPlugin.loader,
-                      {
-                        loader: 'css-loader',
-                        options: {
-                          url: false,
-                          esModule: false,
-                          modules: {
-                            localIdentName: '[name]__[local]--[hash:base64:5]',
-                            namedExport: false,
-                          },
-                        },
-                      },
-                      'postcss-loader',
-                      'sass-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                  {
-                    test: /\.s(a|c)ss$/,
-                    use: [
-                      MiniCssExtractPlugin.loader,
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                      'sass-loader',
-                    ],
-                    exclude: [/node_modules/, /\.module\.s(a|c)ss$/],
-                  },
-                  {
-                    test: /\.module\.css$/,
-                    use: [
-                      MiniCssExtractPlugin.loader,
-                      {
-                        loader: 'css-loader',
-                        options: {
-                          url: false,
-                          esModule: false,
-                          modules: {
-                            localIdentName: '[name]__[local]--[hash:base64:5]',
-                            namedExport: false,
-                          },
-                        },
-                      },
-                      'postcss-loader',
-                    ],
-                    exclude: /node_modules/,
-                  },
-                  {
-                    test: /\.css$/,
-                    use: [
-                      MiniCssExtractPlugin.loader,
-                      { loader: 'css-loader', options: { url: false } },
-                      'postcss-loader',
-                    ],
-                    exclude: [/node_modules/, /\.module\.css$/],
-                  },
-                ] as any[]),
-          ),
+            // 样式规则 (DRY: 使用工厂函数)
+            ...(entry.html === undefined ? createNoHtmlStyleRules() : createHtmlStyleRules()),
+          ],
         },
       ],
     },
@@ -534,14 +553,10 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         return callback();
       }
 
-      const builtin = ['vue3-pixi', 'vue-demi'];
-      if (builtin.includes(request)) {
-        return callback();
-      }
-      if (argv.mode !== 'production' && ['vue', 'pixi'].some(key => request.includes(key))) {
-        return callback();
-      }
-      if (['react', 'zustand'].some(key => request.includes(key))) {
+      if (
+        ['vue', 'vue-router'].every(key => request !== key) &&
+        ['vue', 'react', 'zustand'].some(key => request.includes(key))
+      ) {
         return callback();
       }
       const global = {
@@ -553,7 +568,6 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         'vue-router': 'VueRouter',
         yaml: 'YAML',
         zod: 'z',
-        'pixi.js': 'PIXI',
       };
       if (request in global) {
         return callback(null, 'var ' + global[request as keyof typeof global]);
