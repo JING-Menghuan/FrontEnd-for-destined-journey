@@ -199,7 +199,7 @@ watch(
                 <FormLabel label="标签" />
                 <FormArrayInput
                   v-model="editingSkill.tag"
-                  placeholder="输入标签后按回车添加"
+                  placeholder="输入标签后按回车添加或保存"
                   add-button-text="添加标签"
                   empty-text="暂无标签"
                 />
@@ -340,7 +340,7 @@ watch(
         <FormLabel label="标签" />
         <FormArrayInput
           v-model="newSkill.tag"
-          placeholder="输入标签后按回车添加"
+          placeholder="输入标签后按回车添加或保存"
           add-button-text="添加标签"
           empty-text="暂无标签"
         />

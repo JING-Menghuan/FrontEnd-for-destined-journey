@@ -120,7 +120,11 @@
       <button class="nav-button" :disabled="isSaving" @click="$emit('prev')">
         <span>上一步</span>
       </button>
-      <button class="nav-button" :disabled="isLoading || isSaving" @click="handleNext">
+      <button
+        class="nav-button"
+        :disabled="!selectedCore || isLoading || isSaving"
+        @click="handleNext"
+      >
         <span>{{ isSaving ? '保存中...' : '下一步' }}</span>
       </button>
     </div>

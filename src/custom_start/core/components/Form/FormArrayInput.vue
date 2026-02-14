@@ -35,6 +35,9 @@ const newItemValue = ref('');
 // 当前编辑项的索引
 const editingIndex = ref<number | null>(null);
 
+// 编辑项的临时值
+const editingValue = ref('');
+
 // 计算属性：是否可以添加更多
 const canAddMore = computed(() => {
   return !props.disabled && props.modelValue.length < props.maxItems;
@@ -76,11 +79,28 @@ const updateItem = (index: number, value: string) => {
 const startEdit = (index: number) => {
   if (props.disabled) return;
   editingIndex.value = index;
+  editingValue.value = props.modelValue[index];
 };
 
-// 结束编辑
-const finishEdit = () => {
+// 确认编辑（按回车保存）
+const confirmEdit = () => {
+  if (editingIndex.value === null) return;
+
+  const trimmed = editingValue.value.trim();
+  if (trimmed && trimmed !== props.modelValue[editingIndex.value]) {
+    // 检查是否与其他项重复
+    if (!props.modelValue.some((v, i) => i !== editingIndex.value && v === trimmed)) {
+      updateItem(editingIndex.value, trimmed);
+    }
+  }
   editingIndex.value = null;
+  editingValue.value = '';
+};
+
+// 取消编辑（失焦时取消，不保存）
+const cancelEdit = () => {
+  editingIndex.value = null;
+  editingValue.value = '';
 };
 
 // 移动项目（上移/下移）
@@ -116,12 +136,12 @@ const handleKeydown = (event: KeyboardEvent) => {
           <!-- 编辑模式 -->
           <input
             v-if="editingIndex === index"
-            :value="item"
+            v-model="editingValue"
             class="item-input editing"
             :placeholder="placeholder"
-            @input="updateItem(index, ($event.target as HTMLInputElement).value)"
-            @blur="finishEdit"
-            @keydown.enter="finishEdit"
+            @blur="cancelEdit"
+            @keydown.enter.prevent="confirmEdit"
+            @keydown.escape.prevent="cancelEdit"
           />
 
           <!-- 显示模式 -->
