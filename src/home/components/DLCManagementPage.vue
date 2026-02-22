@@ -45,6 +45,11 @@
         </button>
       </div>
 
+      <!-- 搜索框 -->
+      <div class="search-container">
+        <input v-model="searchTerm" type="text" class="dlc-search" placeholder="🔍 搜索..." />
+      </div>
+
       <!-- Tab 内容区域 -->
       <div class="tab-content">
         <!-- 角色列表 (DLC - Characters) -->
@@ -54,7 +59,7 @@
           <div v-else class="list-detail-layout">
             <div class="item-list">
               <button
-                v-for="char in characterOptions"
+                v-for="char in filteredCharacterOptions"
                 :key="char.value"
                 class="list-item"
                 :class="{
@@ -99,7 +104,7 @@
           <div v-else class="list-detail-layout">
             <div class="item-list">
               <button
-                v-for="event in eventOptions"
+                v-for="event in filteredEventOptions"
                 :key="event.eventKey"
                 class="list-item"
                 :class="{
@@ -148,7 +153,7 @@
           <div v-else class="list-detail-layout">
             <div class="item-list">
               <button
-                v-for="ext in extensionOptions"
+                v-for="ext in filteredExtensionOptions"
                 :key="ext.extensionKey"
                 class="list-item"
                 :class="{
@@ -228,7 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
   initialCharacterState,
   initialEventState,
@@ -257,6 +262,9 @@ const isSaving = ref(false);
 // Tab 状态
 const activeTab = ref<'characters' | 'events' | 'extensions'>('characters');
 
+// 搜索状态
+const searchTerm = ref('');
+
 // 选中项状态
 const selectedCharacter = ref<string | null>(null);
 const selectedEvent = ref<string | null>(null);
@@ -275,6 +283,37 @@ const extensionOptions = ref<ExtensionOption[]>([...initialExtensionState.extens
 const localExtensionSelections = ref(new Map(initialExtensionState.localExtensionSelections));
 
 const bookName = ref<string | null>(null);
+
+// 计算属性：过滤后的列表
+const filteredCharacterOptions = computed(() => {
+  const term = searchTerm.value.toLowerCase();
+  if (!term) return characterOptions.value;
+
+  return characterOptions.value.filter(char => {
+    const searchStr = `${char.label} ${char.author || ''} ${char.info || ''}`.toLowerCase();
+    return searchStr.includes(term);
+  });
+});
+
+const filteredEventOptions = computed(() => {
+  const term = searchTerm.value.toLowerCase();
+  if (!term) return eventOptions.value;
+
+  return eventOptions.value.filter(event => {
+    const searchStr = `${event.label} ${event.author || ''} ${event.info || ''}`.toLowerCase();
+    return searchStr.includes(term);
+  });
+});
+
+const filteredExtensionOptions = computed(() => {
+  const term = searchTerm.value.toLowerCase();
+  if (!term) return extensionOptions.value;
+
+  return extensionOptions.value.filter(ext => {
+    const searchStr = `${ext.label} ${ext.author || ''} ${ext.info || ''}`.toLowerCase();
+    return searchStr.includes(term);
+  });
+});
 
 // 计算属性：获取选中项的详细信息
 const getSelectedCharacterInfo = computed(() => {
@@ -393,6 +432,14 @@ async function handleNext() {
   emit('next');
 }
 
+// 监听 Tab 切换，清空搜索词和选中状态
+watch(activeTab, () => {
+  searchTerm.value = '';
+  selectedCharacter.value = null;
+  selectedEvent.value = null;
+  selectedExtension.value = null;
+});
+
 // 组件挂载时加载所有选项
 onMounted(() => {
   loadAllOptions();
@@ -417,6 +464,32 @@ onMounted(() => {
   margin: 25px 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+}
+
+/* 搜索框样式 */
+.search-container {
+  padding: 10px 20px 0 20px;
+}
+
+.dlc-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: var(--body-font);
+  font-size: 0.95em;
+  background-color: var(--item-bg-color);
+  color: var(--text-color);
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.dlc-search:focus {
+  border-color: var(--title-color);
+}
+
+.dlc-search::placeholder {
+  color: #999;
 }
 
 /* Tab 导航样式 - 与页面风格协调 */
