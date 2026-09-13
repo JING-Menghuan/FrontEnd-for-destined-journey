@@ -33,6 +33,47 @@
   color: var(--theme-text-primary);
 }
 
+.presetTabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.presetTab {
+  display: inline-flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--theme-card-border) 72%, transparent);
+  border-radius: $border-radius-sm;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible,
+  &.presetTabActive {
+    border-color: color-mix(in srgb, var(--theme-tab-indicator) 48%, var(--theme-card-border));
+    background: color-mix(in srgb, var(--theme-tab-indicator) 10%, transparent);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-tab-indicator);
+    outline-offset: 1px;
+  }
+}
+
+.presetContent {
+  padding-top: $spacing-sm;
+  border-top: 1px solid color-mix(in srgb, var(--theme-card-border) 70%, transparent);
+}
+
 .presetList {
   display: flex;
   flex-wrap: wrap;

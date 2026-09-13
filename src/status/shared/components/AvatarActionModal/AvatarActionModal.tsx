@@ -46,6 +46,7 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [failedPresetUrls, setFailedPresetUrls] = useState<Set<string>>(() => new Set());
+  const [expandedPresetGroup, setExpandedPresetGroup] = useState<string | null>(null);
   const fileInputId = useId();
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -96,12 +97,32 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
       <div className={styles.panel}>
         {subtitle ? <div className={styles.subtitle}>{subtitle}</div> : null}
 
-        {Object.entries(presetGroups).map(([group, urls]) =>
-          urls.length > 0 ? (
-            <div key={group} className={styles.section}>
-              <div className={styles.sectionTitle}>{group}</div>
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>预设头像</div>
+          <div className={styles.presetTabs} role="tablist" aria-label="预设头像分类">
+            {Object.entries(presetGroups).map(([group, urls]) => {
+              const isExpanded = expandedPresetGroup === group;
+
+              return (
+                <button
+                  key={group}
+                  type="button"
+                  className={`${styles.presetTab} ${isExpanded ? styles.presetTabActive : ''}`}
+                  role="tab"
+                  aria-selected={isExpanded}
+                  aria-expanded={isExpanded}
+                  onClick={() => setExpandedPresetGroup(isExpanded ? null : group)}
+                >
+                  <span>{group}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {expandedPresetGroup ? (
+            <div className={styles.presetContent} role="tabpanel">
               <div className={styles.presetList}>
-                {urls.map((url, index) => (
+                {(presetGroups[expandedPresetGroup] ?? []).map((url, index) => (
                   <button
                     key={url}
                     type="button"
@@ -111,7 +132,7 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
                       await onSelectPreset?.(url);
                       onClose();
                     }}
-                    title={`使用${group}_${String(index + 1).padStart(2, '0')}头像`}
+                    title={`使用${expandedPresetGroup}_${String(index + 1).padStart(2, '0')}头像`}
                   >
                     <img
                       src={url}
@@ -124,8 +145,8 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
                 ))}
               </div>
             </div>
-          ) : null,
-        )}
+          ) : null}
+        </div>
 
         <div className={styles.section}>
           <div className={styles.sectionTitle}>本地导入</div>
