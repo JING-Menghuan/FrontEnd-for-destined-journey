@@ -1,4 +1,13 @@
-import { ChangeEvent, FC, KeyboardEvent, MouseEvent, useEffect, useMemo, useState } from 'react';
+import {
+  ChangeEvent,
+  FC,
+  KeyboardEvent,
+  MouseEvent,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useDeleteConfirm } from '../../core/hooks';
 import { useEditorSettingStore, useMvuDataStore } from '../../core/stores';
 import {
@@ -8,11 +17,13 @@ import {
   getAvatarActionState,
   getAvatarRecordsByScopeKey,
   getAvatarScopeKey,
-  getChatPartnerGalleryMap,
+  getCharInfoPartnerGalleryMap,
   getDefaultPartnerAvatarMap,
   getPartnerGalleryRecordsByScopeKey,
+  getLegacyPartnerGalleryMap,
   getPredefinedPartnerGalleryMap,
   markAvatarAsRemoved,
+  loadAvatarPresetGroups,
   PartnerGalleryItem,
   readAvatarFileAsDataUrl,
   readSessionState,
@@ -22,6 +33,7 @@ import {
   savePartnerGalleryItems,
   writeSessionState,
 } from '../../core/utils';
+import type { AvatarPresetGroups } from '../../core/utils';
 import {
   Ascension,
   AvatarActionModal,
@@ -177,6 +189,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const [partnerAvatarRemovedMap, setPartnerAvatarRemovedMap] = useState<Record<string, boolean>>(
     {},
   );
+  const [avatarPresetGroups, setAvatarPresetGroups] = useState<AvatarPresetGroups>({});
   const [partnerGalleryMap, setPartnerGalleryMap] = useState<Record<string, PartnerGalleryItem[]>>(
     {},
   );
@@ -651,6 +664,23 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
     }
   };
 
+  const handlePartnerAvatarPreset = async (partner_name: string, url: string) => {
+    try {
+      await saveAvatarRecord({
+        scope_key: avatarScopeKey,
+        owner_type: 'partner',
+        owner_name: partner_name,
+        source_type: 'preset',
+        value: url,
+      });
+
+      setPartnerAvatarMap(previous => ({ ...previous, [partner_name]: url }));
+      setPartnerAvatarRemovedMap(previous => ({ ...previous, [partner_name]: false }));
+    } catch (error) {
+      console.warn('[DestinyTab] 保存伙伴预制头像失败:', error);
+    }
+  };
+
   const handlePartnerAvatarExport = async (partner_name: string) => {
     const currentAvatarUrl = getPartnerAvatarUrl(partner_name);
     if (!currentAvatarUrl) {
@@ -705,10 +735,14 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
       return;
     }
 
-    setPartnerAvatarMap(previous => ({
-      ...previous,
-      [partner_name]: '',
-    }));
+    if (partnerAvatarMap[partner_name]) {
+      void removeAvatarRecord(avatarScopeKey, 'partner', partner_name)
+        .then(() => {
+          setPartnerAvatarMap(previous => ({ ...previous, [partner_name]: '' }));
+          setPartnerAvatarRemovedMap(previous => ({ ...previous, [partner_name]: false }));
+        })
+        .catch(error => console.warn('[DestinyTab] 清理失效伙伴头像失败:', error));
+    }
   };
 
   const openPartnerAvatarModal = (partner_name: string) => {
@@ -979,6 +1013,29 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
     </div>
   );
 
+  const handlePartnerGalleryImageError = (
+    event: SyntheticEvent<HTMLImageElement>,
+    item: PartnerGalleryItem,
+  ) => {
+    const image = event.currentTarget;
+    const sources = item.sources ?? [item.url];
+    const currentIndex = Number(image.dataset.sourceIndex ?? 0);
+    const nextSource = sources[currentIndex + 1];
+
+    if (nextSource) {
+      image.dataset.sourceIndex = String(currentIndex + 1);
+      image.src = nextSource;
+      return;
+    }
+
+    const galleryItem = image.closest('figure') as HTMLElement | null;
+    if (galleryItem) {
+      galleryItem.style.display = 'none';
+    } else {
+      image.style.display = 'none';
+    }
+  };
+
   const renderPartnerGallerySection = (partnerName: string) => {
     const galleryItems = partnerGalleryMap[partnerName] ?? [];
     const externalGalleryItems = partnerExternalGalleryMap[partnerName] ?? [];
@@ -1083,12 +1140,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
                   alt={item.title}
                   className={styles.partnerGalleryImage}
                   loading="lazy"
-                  onError={event => {
-                    const galleryItem = event.currentTarget.closest('figure') as HTMLElement | null;
-                    if (galleryItem) {
-                      galleryItem.style.display = 'none';
-                    }
-                  }}
+                  onError={event => handlePartnerGalleryImageError(event, item)}
                 />
               </button>
               <figcaption className={styles.partnerGalleryCaption}>
@@ -1701,6 +1753,10 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
   }, [avatarScopeKey, partnerEntries]);
 
   useEffect(() => {
+    void loadAvatarPresetGroups().then(setAvatarPresetGroups);
+  }, []);
+
+  useEffect(() => {
     let ignore = false;
 
     const loadPartnerGalleries = async () => {
@@ -1725,7 +1781,8 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
           record => record.owner_type === 'partner' && partnerNameSet.has(record.owner_name),
         );
         const recordsByPartnerName = _.keyBy(records, 'owner_name');
-        const chatGalleryMap = getChatPartnerGalleryMap(partnerNames);
+        const legacyGalleryMap = getLegacyPartnerGalleryMap(partnerNames);
+        const charInfoGalleryMap = getCharInfoPartnerGalleryMap(partnerNames);
         const nextGalleryMap = partnerNames.reduce<Record<string, PartnerGalleryItem[]>>(
           (result, partnerName) => {
             const localRecord = recordsByPartnerName[partnerName];
@@ -1737,9 +1794,13 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
         const nextExternalGalleryMap = partnerNames.reduce<Record<string, PartnerGalleryItem[]>>(
           (result, partnerName) => {
             const localRecord = recordsByPartnerName[partnerName];
-            const chatGalleryItems = chatGalleryMap[partnerName] ?? [];
-            if (!localRecord && chatGalleryItems.length > 0) {
-              result[partnerName] = chatGalleryItems;
+            const legacyGalleryItems = legacyGalleryMap[partnerName] ?? [];
+            const charInfoGalleryItems = charInfoGalleryMap[partnerName] ?? [];
+            if (
+              !localRecord &&
+              (legacyGalleryItems.length > 0 || charInfoGalleryItems.length > 0)
+            ) {
+              result[partnerName] = [...legacyGalleryItems, ...charInfoGalleryItems];
             }
             return result;
           },
@@ -1864,9 +1925,11 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
           canDelete={activePartnerAvatarActionState?.canDelete ?? false}
           canReset={activePartnerAvatarActionState?.canReset ?? false}
           deleteLabel="删除头像"
+          presetGroups={avatarPresetGroups}
           onClose={closePartnerAvatarModal}
           onUpload={(file: File) => handlePartnerAvatarUpload(activeAvatarPartnerName, file)}
           onSubmitLink={(url: string) => handlePartnerAvatarUrlInput(activeAvatarPartnerName, url)}
+          onSelectPreset={(url: string) => handlePartnerAvatarPreset(activeAvatarPartnerName, url)}
           onExport={() => handlePartnerAvatarExport(activeAvatarPartnerName)}
           onDelete={() => handlePartnerAvatarRemove(activeAvatarPartnerName)}
           onReset={() => handlePartnerAvatarReset(activeAvatarPartnerName)}
@@ -1897,6 +1960,7 @@ const DestinyTabContent: FC<WithMvuDataProps> = ({ data }) => {
               src={activeGalleryPreviewItem.url}
               alt={activeGalleryPreviewItem.title}
               className={styles.partnerGalleryPreviewImage}
+              onError={event => handlePartnerGalleryImageError(event, activeGalleryPreviewItem)}
             />
             <div className={styles.partnerGalleryPreviewTitle}>
               {activeGalleryPreviewItem.title}
