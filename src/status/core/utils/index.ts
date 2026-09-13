@@ -1,5 +1,6 @@
 export * from './assets';
 export * from './avatar-storage';
+export * from './avatar-presets';
 export * from './format';
 export * from './iconify';
 export * from './partner-avatar';

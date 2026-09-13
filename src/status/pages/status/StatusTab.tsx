@@ -12,7 +12,9 @@ import {
   readAvatarFileAsDataUrl,
   removeAvatarRecord,
   saveAvatarRecord,
+  loadAvatarPresetGroups,
 } from '../../core/utils';
+import type { AvatarPresetGroups } from '../../core/utils';
 import {
   Ascension,
   AvatarActionModal,
@@ -118,6 +120,7 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
   const [playerDefaultAvatarUrl, setPlayerDefaultAvatarUrl] = useState<string>('');
   const [isPlayerAvatarRemoved, setIsPlayerAvatarRemoved] = useState(false);
   const [isPlayerAvatarModalOpen, setIsPlayerAvatarModalOpen] = useState(false);
+  const [avatarPresetGroups, setAvatarPresetGroups] = useState<AvatarPresetGroups>({});
   const player = data.主角;
   const avatarScopeKey = useMemo(() => getAvatarScopeKey(), []);
 
@@ -157,6 +160,10 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
       ignore = true;
     };
   }, [avatarScopeKey]);
+
+  useEffect(() => {
+    void loadAvatarPresetGroups().then(setAvatarPresetGroups);
+  }, []);
 
   const handlePlayerAvatarUpload = async (file: File) => {
     try {
@@ -201,6 +208,22 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
     }
   };
 
+  const handlePlayerAvatarPreset = async (url: string) => {
+    try {
+      await saveAvatarRecord({
+        scope_key: avatarScopeKey,
+        owner_type: 'player',
+        owner_name: '主角',
+        source_type: 'preset',
+        value: url,
+      });
+      setPlayerAvatarUrl(url);
+      setIsPlayerAvatarRemoved(false);
+    } catch (error) {
+      console.warn('[StatusTab] 保存主角预制头像失败:', error);
+    }
+  };
+
   const handlePlayerAvatarExport = async () => {
     if (!playerAvatarDisplayUrl) {
       return;
@@ -229,7 +252,12 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
 
   const handlePlayerAvatarImageError = () => {
     if (playerAvatarUrl) {
-      setPlayerAvatarUrl('');
+      void removeAvatarRecord(avatarScopeKey, 'player', '主角')
+        .then(() => {
+          setPlayerAvatarUrl('');
+          setIsPlayerAvatarRemoved(false);
+        })
+        .catch(error => console.warn('[StatusTab] 清理失效主角头像失败:', error));
       return;
     }
 
@@ -659,9 +687,11 @@ const StatusTabContent: FC<WithMvuDataProps> = ({ data }) => {
         canReset={playerAvatarActionState.canReset}
         deleteLabel="删除头像"
         resetLabel="恢复默认"
+        presetGroups={avatarPresetGroups}
         onClose={() => setIsPlayerAvatarModalOpen(false)}
         onUpload={handlePlayerAvatarUpload}
         onSubmitLink={handlePlayerAvatarUrlInput}
+        onSelectPreset={handlePlayerAvatarPreset}
         onExport={handlePlayerAvatarExport}
         onDelete={handlePlayerAvatarRemove}
         onReset={handlePlayerAvatarReset}

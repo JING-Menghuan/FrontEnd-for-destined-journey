@@ -4,7 +4,7 @@ const AvatarDatabaseVersion = 1;
 
 export type AvatarOwnerType = 'player' | 'partner';
 
-export type AvatarSourceType = 'upload' | 'url' | 'removed';
+export type AvatarSourceType = 'upload' | 'url' | 'preset' | 'removed';
 
 export interface AvatarRecord {
   key: string;

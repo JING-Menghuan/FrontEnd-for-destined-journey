@@ -33,6 +33,47 @@
   color: var(--theme-text-primary);
 }
 
+.presetList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.presetButton {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 64px;
+  min-height: 82px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--theme-card-border) 72%, transparent);
+  border-radius: $border-radius-sm;
+  background: transparent;
+  color: var(--theme-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--theme-tab-indicator);
+    background: color-mix(in srgb, var(--theme-tab-indicator) 10%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-tab-indicator);
+    outline-offset: 2px;
+  }
+
+  img {
+    display: block;
+    width: 50px;
+    height: 50px;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+}
+
 .linkRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

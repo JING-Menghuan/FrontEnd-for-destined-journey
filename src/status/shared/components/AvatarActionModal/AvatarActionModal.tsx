@@ -12,12 +12,14 @@ export interface AvatarActionModalProps {
   canReset?: boolean;
   deleteLabel?: string;
   resetLabel?: string;
+  presetGroups?: Record<string, string[]>;
   onClose: () => void;
   onUpload: (file: File) => Promise<void> | void;
   onSubmitLink: (url: string) => Promise<void> | void;
   onExport?: () => Promise<void> | void;
   onDelete?: () => Promise<void> | void;
   onReset?: () => Promise<void> | void;
+  onSelectPreset?: (url: string) => Promise<void> | void;
 }
 
 /**
@@ -33,14 +35,17 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
   canReset = false,
   deleteLabel = '删除头像',
   resetLabel = '恢复默认',
+  presetGroups = {},
   onClose,
   onUpload,
   onSubmitLink,
   onExport,
   onDelete,
   onReset,
+  onSelectPreset,
 }) => {
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [failedPresetUrls, setFailedPresetUrls] = useState<Set<string>>(() => new Set());
   const fileInputId = useId();
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +95,39 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
     <ConfirmModal open={open} title={title} onClose={handleClose} className={styles.modal}>
       <div className={styles.panel}>
         {subtitle ? <div className={styles.subtitle}>{subtitle}</div> : null}
+
+        {Object.entries(presetGroups).map(([group, urls]) =>
+          urls.length > 0 ? (
+            <div key={group} className={styles.section}>
+              <div className={styles.sectionTitle}>{group}</div>
+              <div className={styles.presetList}>
+                {urls.map((url, index) => (
+                  <button
+                    key={url}
+                    type="button"
+                    className={styles.presetButton}
+                    disabled={failedPresetUrls.has(url)}
+                    onClick={async () => {
+                      await onSelectPreset?.(url);
+                      onClose();
+                    }}
+                    title={`使用${group}_${String(index + 1).padStart(2, '0')}头像`}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      aria-hidden="true"
+                      onError={() =>
+                        setFailedPresetUrls(previous => new Set(previous).add(url))
+                      }
+                    />
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null,
+        )}
 
         <div className={styles.section}>
           <div className={styles.sectionTitle}>本地导入</div>
