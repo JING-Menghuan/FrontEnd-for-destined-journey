@@ -140,7 +140,7 @@ export const getCharInfoPartnerGalleryMap = (partner_names: string[]) => {
     const chatVariables = getVariables({ type: 'chat' });
     return partner_names.reduce<Record<string, PartnerGalleryItem[]>>((result, partner_name) => {
       const galleryItems = getLocalPartnerGalleryItems(
-        _.get(chatVariables, ['local', 'char_info', 'profiles', partner_name, 'gallery']),
+        _.get(chatVariables, ['char_info', 'profiles', partner_name, 'gallery']),
       );
       if (galleryItems.length > 0) {
         result[partner_name] = galleryItems;
