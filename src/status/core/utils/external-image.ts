@@ -1,5 +1,4 @@
 const ExternalImageHostAllowList = ['files.catbox.moe', 'i.ibb.co', 'wsrv.nl'];
-const ExternalImageExtensionAllowList = ['.png', '.jpg', '.jpeg', '.webp', '.avif'];
 
 export interface ExternalImageEntry {
   url: string;
@@ -31,13 +30,16 @@ export const getAllowedExternalImageUrl = (value: unknown) => {
       return '';
     }
 
-    const pathname = url.pathname.toLowerCase();
-    const hasAllowedExtension = ExternalImageExtensionAllowList.some(extension =>
-      pathname.endsWith(extension),
-    );
+    let decodedValue = normalizedValue.toLowerCase();
+    try {
+      decodedValue = decodeURIComponent(decodedValue);
+    } catch {
+      console.log('[ExternalImage] 忽略无法解析的图片 URL:', normalizedValue);
+      return '';
+    }
 
-    if (!hasAllowedExtension) {
-      console.log('[ExternalImage] 忽略非白名单图片扩展名:', normalizedValue);
+    if (decodedValue.includes('.svg') || decodedValue.includes('image/svg+xml')) {
+      console.log('[ExternalImage] 忽略 SVG 图片 URL:', normalizedValue);
       return '';
     }
 
