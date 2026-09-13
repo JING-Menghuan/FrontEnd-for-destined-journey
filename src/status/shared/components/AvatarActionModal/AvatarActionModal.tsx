@@ -117,9 +117,7 @@ export const AvatarActionModal: FC<AvatarActionModalProps> = ({
                       src={url}
                       alt=""
                       aria-hidden="true"
-                      onError={() =>
-                        setFailedPresetUrls(previous => new Set(previous).add(url))
-                      }
+                      onError={() => setFailedPresetUrls(previous => new Set(previous).add(url))}
                     />
                     <span>{String(index + 1).padStart(2, '0')}</span>
                   </button>

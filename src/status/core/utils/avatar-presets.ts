@@ -20,9 +20,7 @@ export const loadAvatarPresetGroups = async (): Promise<AvatarPresetGroups> => {
     return Object.fromEntries(
       Object.entries(groups).map(([group, urls]) => [
         group,
-        Array.isArray(urls)
-          ? urls.map(getAllowedExternalImageUrl).filter(Boolean)
-          : [],
+        Array.isArray(urls) ? urls.map(getAllowedExternalImageUrl).filter(Boolean) : [],
       ]),
     ) as AvatarPresetGroups;
   })();
